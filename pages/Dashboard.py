@@ -37,18 +37,27 @@ try:
                 df_display = df[df['หน่วยงาน'] == selected_ward] if selected_ward != "ภาพรวมทั้งหมด" else df
                 score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
-                # ส่วนที่ 1: ร้อยละตามเป้าหมาย
+                import altair as alt
+
+                # 1. ร้อยละจำนวนผู้ประเมิน
                 st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
-                counts = df_display['หน่วยงาน'].value_counts().reset_index()
-                counts.columns = ['หน่วยงาน', 'Count']
-                progress_df = pd.merge(counts, targets_df, on='หน่วยงาน', how='left').fillna({'Target': 1})
-                progress_df['Percent'] = (progress_df['Count'] / progress_df['Target'] * 100).clip(upper=100)
-                st.bar_chart(progress_df.set_index('หน่วยงาน')['Percent'], y_min=0, y_max=100)
-
-                # ส่วนที่ 2: ร้อยละผลการประเมิน
+                chart1 = alt.Chart(progress_df).mark_bar().encode(
+                    x='หน่วยงาน',
+                    y=alt.Y('Percent', scale=alt.Scale(domain=[0, 100]))
+                )
+                st.altair_chart(chart1, use_container_width=True)
+                
+                # 2. ร้อยละผลการประเมิน
                 st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
-                st.bar_chart((df_display[score_cols].mean() / 5 * 100), horizontal=True, y_min=0, y_max=100)
-
+                avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
+                avg_data.columns = ['หัวข้อ', 'Score']
+                
+                chart2 = alt.Chart(avg_data).mark_bar().encode(
+                    x=alt.X('Score', scale=alt.Scale(domain=[0, 100])),
+                    y='หัวข้อ'
+                )
+                st.altair_chart(chart2, use_container_width=True)
+                
                 # ส่วนที่ 3: Mean & SD
                 st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
                 stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
