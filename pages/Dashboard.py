@@ -41,16 +41,22 @@ try:
                     progress = df['หน่วยงาน'].value_counts() / 50 * 100
                     st.bar_chart(progress)
 
+                    # 2. ร้อยละผลการประเมินภาพรวม (กราฟแนวนอน)
                     st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
-                    score_cols = df.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
-                    if not score_cols.empty:
-                        avg_score = df.groupby('หน่วยงาน')[score_cols].mean().mean(axis=1) / 5 * 100
-                        st.bar_chart(avg_score, horizontal=True)
+                    avg_scores = df_filtered[score_cols].mean()
+                    # สลับแกนให้แสดงเป็นกราฟแท่งแนวนอน
+                    st.bar_chart(avg_scores / 5 * 100, horizontal=True)
 
+                    # 3. Mean & SD รายข้อ (ปรับให้หัวข้ออยู่คอลัมน์)
                     st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
-                    stats = df.groupby('หน่วยงาน')[score_cols].agg(['mean', 'std']).round(2)
-                    st.dataframe(stats)
-                    st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", stats.to_csv().encode('utf-8'), "summary.csv")
+                    # ใช้ .T (Transpose) เพื่อเปลี่ยนแถวเป็นคอลัมน์
+                    stats = df_filtered[score_cols].agg(['mean', 'std']).round(2).T
+                    stats.columns = ['Mean', 'SD']
+                    st.dataframe(stats, use_container_width=True)
+
+                    # ดาวน์โหลด
+                    csv = stats.to_csv().encode('utf-8-sig')
+                    st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", csv, "summary.csv")
 
                     with st.expander("ดูข้อมูลดิบ"):
                         st.dataframe(df)
