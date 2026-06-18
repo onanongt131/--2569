@@ -15,7 +15,7 @@ def load_data():
     perms_df = pd.read_csv(perm_url)
     
     # Debug: ให้แสดงชื่อคอลัมน์ที่ระบบอ่านได้ ถ้ายัง error
-    # st.write("คอลัมน์ที่พบในไฟล์สิทธิ์:", perms_df.columns.tolist()) 
+    st.write("คอลัมน์ที่พบในไฟล์สิทธิ์:", perms_df.columns.tolist()) 
     
     return df, perms_df
 
