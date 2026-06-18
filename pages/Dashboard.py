@@ -25,12 +25,12 @@ if check_password():
     try:
         df = pd.read_csv(sheet_url)
         st.subheader("จำนวนผู้ประเมินรายหน่วยงาน")
-        chart_data = df['ward'].value_counts()
+        chart_data = df['หน่วยงาน'].value_counts()
         st.bar_chart(chart_data)
         
         st.subheader("ตารางข้อมูลดิบแยกตามหน่วยงาน")
-        selected_ward = st.selectbox("เลือกหน่วยงาน:", df['ward'].unique())
-        filtered_df = df[df['ward'] == selected_ward]
+        selected_ward = st.selectbox("เลือกหน่วยงาน:", df['หน่วยงาน'].unique())
+        filtered_df = df[df['หน่วยงาน'] == selected_ward]
         st.dataframe(filtered_df)
         
         csv = filtered_df.to_csv(index=False).encode('utf-8')
