@@ -12,13 +12,14 @@ def load_wards():
     except:
         return ["หอผู้ป่วย 1", "หอผู้ป่วย 2"]
 
-st.title("แบบประเมินพฤติกรรมพยาบาล")
-
+# จัดการสถานะหน้าจอ
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
 
+st.title("แบบประเมินพฤติกรรมพยาบาล")
+
+# แสดงหน้าฟอร์มประเมินถ้ายังไม่ได้ส่ง
 if not st.session_state.submitted:
-    # 1. จัดคอลัมน์ให้อยู่ในบรรทัดเดียวกัน
     col1, col2, col3 = st.columns([1.5, 1, 1])
     
     with col1:
@@ -26,17 +27,15 @@ if not st.session_state.submitted:
     with col2:
         evaluator_type = st.radio("ผู้ประเมิน:", ["ผู้ป่วย", "ญาติ"], horizontal=True, key="eval_unique")
     with col3:
-        # 2. แก้ปัญหาช่องอายุ (ให้พิมพ์ได้โดยไม่มีปุ่มบวก-ลบกวนใจ)
         age_str = st.text_input("อายุผู้ประเมิน:", placeholder="กรอกอายุที่นี่...", key="age_unique")
         age = int(age_str) if age_str and age_str.isdigit() else None
 
-    # ส่วนประเมิน
     items = ["อัธยาศัยในการต้อนรับ", "ความสุภาพอ่อนโยน", "มีมนุษยสัมพันธ์", "ความกระตือรือร้น", 
              "การควบคุมอารมณ์", "ความเสมอภาค", "การให้เกียรติ", "ตอบคำถามด้วยความเต็มใจ", 
              "คำแนะนำที่เป็นประโยชน์", "การรับฟังปัญหา", "รักษาสิทธิผู้รับบริการ", "รักษาความลับ", 
              "อธิบายขั้นตอนก่อน-หลังบริการ", "ปลอบโยนให้กำลังใจ", "ความรวดเร็วและประสิทธิภาพ", 
              "ความนิ่มนวล", "มีน้ำใจเอาใจใส่", "ช่วยเหลือบรรเทาความเจ็บปวด", "ความสะอาดเรียบร้อย", 
-             "ความน่าเชื่อถือศรัทธา"] # ใส่ให้ครบตามที่คุณต้องการ
+             "ความน่าเชื่อถือศรัทธา"]
     
     results = {}
     st.write("---")
@@ -46,29 +45,27 @@ if not st.session_state.submitted:
     suggestion = st.text_area("ข้อเสนอแนะเพิ่มเติม", key="sugg_unique")
 
     if st.button("ส่งแบบประเมิน", key="submit_btn"):
-        # 1. เช็คก่อนว่ากรอกครบไหม
         if not ward:
             st.warning("กรุณาเลือกหอผู้ป่วยก่อนครับ")
         else:
-            with st.spinner('กำลังบันทึกข้อมูล... กรุณารอสักครู่'):
+            with st.spinner('กำลังส่งข้อมูล...'):
                 url = "https://script.google.com/macros/s/AKfycbyjb9iX8fUbJ9WEWMceLBjR6WIp6oExLuYbEOdkzr7VW6n4KPNtNsYs1ASpnGf5w_POlQ/exec"
                 payload = {"ward": ward, "evaluatorType": evaluator_type, "age": age, "suggestion": suggestion, **results}
                 try:
-                    response = requests.post(url, json=payload, timeout=15)
-                    # ถ้าสถานะเป็น 200 ถือว่าผ่าน
+                    response = requests.post(url, json=payload, timeout=20)
                     if response.status_code == 200:
                         st.session_state.submitted = True
                         st.rerun()
                     else:
-                        st.error("เกิดข้อผิดพลาดในการส่งข้อมูล (Server Error)")
-                except:
-                    # กรณีเชื่อมต่อไม่ได้ แต่ถ้าข้อมูลเข้า ก็ให้ถือว่าสำเร็จไปเลย
-                    st.success("บันทึกข้อมูลเรียบร้อยแล้ว!")
-                    st.session_state.submitted = True
-                    st.rerun()
-                else:
-                    st.success("บันทึกข้อมูลเรียบร้อยแล้ว! ขอบคุณสำหรับการประเมินครับ")
-                    st.balloons() # เพิ่มลูกโป่งแสดงความยินดี
-                    if st.button("ทำแบบประเมินอีกครั้ง"):
-                        st.session_state.submitted = False
+                        st.error(f"เกิดข้อผิดพลาดในการส่งข้อมูล (Status: {response.status_code})")
+                except Exception as e:
+                    st.error(f"ไม่สามารถเชื่อมต่อฐานข้อมูลได้: {e}")
+
+# แสดงหน้า Success เมื่อส่งเสร็จแล้ว
+else:
+    st.success("บันทึกข้อมูลเรียบร้อยแล้ว! ขอบคุณสำหรับการประเมินครับ")
+    st.balloons()
+    if st.button("ทำแบบประเมินอีกครั้ง"):
+        st.session_state.submitted = False
+        st.rerun()ion_state.submitted = False
                         st.rerun()
