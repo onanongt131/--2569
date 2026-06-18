@@ -1,69 +1,43 @@
-import os
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
+
+st.set_page_config(layout="wide")
 
 @st.cache_data(ttl=60)
 def load_data():
-    # ใช้ os.path.join เพื่อระบุตำแหน่งไฟล์ให้ถูกต้องไม่ว่าจะรันจากที่ไหน
-    # __file__ คือที่อยู่ของ Dashboard.py ดังนั้น os.path.dirname(os.path.dirname(__file__)) คือโฟลเดอร์หลัก
-    base_path = os.path.dirname(os.path.dirname(__file__))
+    # ใช้ os เพื่อหา path ปัจจุบันให้ชัวร์
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    data_path = os.path.join(base_dir, "data.csv")
+    perm_path = os.path.join(base_dir, "permissions.csv")
     
-    data_path = os.path.join(base_path, 'data.csv')
-    perms_path = os.path.join(base_path, 'permissions.csv')
-    
-    df = pd.read_csv(data_path)
-    perms_df = pd.read_csv(perms_path)
+    # อ่านไฟล์โดยระบุ encoding ให้รองรับภาษาไทย
+    df = pd.read_csv(data_path, encoding='utf-8-sig')
+    perms_df = pd.read_csv(perm_path, encoding='utf-8-sig')
     
     return df, perms_df
 
-# --- ส่วนแสดงผล ---
 st.title("📊 Dashboard สรุปผลการประเมินพยาบาล")
 
-# ล็อกอินที่ Sidebar
-pwd = st.sidebar.text_input("รหัสผ่านผู้บริหาร:", type="password")
-
-if pwd:
-    try:
-        df, perms_df = load_data()
-        
-        # ตรวจสอบรหัสผ่านใน Sheet สิทธิ์
-        user_row = perms_df[perms_df['Password'].astype(str) == str(pwd)]
-        
-        if not user_row.empty:
-            # กรองข้อมูลตามสิทธิ์
-            access_list = str(user_row.iloc[0]['WardAccess'])
-            if access_list != "ALL":
-                allowed_wards = [w.strip() for w in access_list.split(',')]
-                df = df[df['หน่วยงาน'].isin(allowed_wards)]
+# โหลดข้อมูลและตรวจสอบ Error
+try:
+    df, perms_df = load_data()
+    
+    pwd = st.sidebar.text_input("รหัสผ่านผู้บริหาร:", type="password")
+    
+    if pwd:
+        # ตรวจสอบคอลัมน์ใน perms_df ว่าตรงกับที่เขียนไหม
+        if 'Password' in perms_df.columns:
+            user_row = perms_df[perms_df['Password'].astype(str).str.strip() == str(pwd).strip()]
             
-            # --- แสดงข้อมูล ---
-            # 1. ร้อยละจำนวนผู้ประเมิน
-            st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-            progress = df['หน่วยงาน'].value_counts() / 50 * 100
-            st.bar_chart(progress)
-
-            # 2. ร้อยละผลการประเมินภาพรวม
-            st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
-            score_cols = df.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
-            if not score_cols.empty:
-                avg_score = df.groupby('หน่วยงาน')[score_cols].mean().mean(axis=1) / 5 * 100
-                st.bar_chart(avg_score, horizontal=True)
-
-            # 3. Mean & SD รายข้อ
-            st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
-            stats = df.groupby('หน่วยงาน')[score_cols].agg(['mean', 'std']).round(2)
-            st.dataframe(stats)
-            st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", stats.to_csv().encode('utf-8'), "summary.csv")
-
-            # 4. ข้อมูลดิบ
-            with st.expander("ดูข้อมูลดิบ"):
-                st.dataframe(df)
+            if not user_row.empty:
+                # ส่วนการแสดงผลเดิมของคุณ...
+                st.success("เข้าสู่ระบบสำเร็จ")
+            else:
+                st.error("รหัสผ่านไม่ถูกต้อง")
         else:
-            st.error("รหัสผ่านไม่ถูกต้อง")
+            st.error(f"ไม่พบหัวคอลัมน์ 'Password' ในไฟล์ (คอลัมน์ที่พบคือ: {perms_df.columns.tolist()})")
             
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
-        st.write("คำแนะนำ: โปรดตรวจสอบว่าลิงก์ Google Sheets ทั้งสองไฟล์ได้ตั้งค่าเป็น Public และรูปแบบคอลัมน์ถูกต้อง")
-else:
-    st.info("กรุณาใส่รหัสผ่านที่แถบด้านซ้ายมือเพื่อดูข้อมูล")
+except Exception as e:
+    st.error(f"เกิดข้อผิดพลาด: {e}")
