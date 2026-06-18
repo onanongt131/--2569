@@ -7,15 +7,12 @@ st.set_page_config(layout="wide")
 # --- ฟังก์ชันดึงข้อมูลสิทธิ์และประเมิน ---
 @st.cache_data(ttl=60)
 def load_data():
-    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
+    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/pub?output=csv"
     # เปลี่ยน URL นี้เป็นลิงก์ไฟล์สิทธิ์ของคุณ
-    perm_url = "https://docs.google.com/spreadsheets/d/AKfycbyjb9iX8fUbJ9WEWMceLBjR6WIp6oExLuYbEOdkzr7VW6n4KPNtNsYs1ASpnGf5w_POlQ/export?format=csv"
+    perm_url = "https://docs.google.com/spreadsheets/d/1m3qfh3x-H1EdEPW75rfuuVtR9pAcUZisOYK5CNt2LFPzipC6TNombBJ5/pub?output=csv"
     
     df = pd.read_csv(sheet_url)
     perms_df = pd.read_csv(perm_url)
-    
-    # Debug: ให้แสดงชื่อคอลัมน์ที่ระบบอ่านได้ ถ้ายัง error
-    # st.write("คอลัมน์ที่พบในไฟล์สิทธิ์:", perms_df.columns.tolist()) 
     
     return df, perms_df
 
