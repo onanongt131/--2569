@@ -18,7 +18,7 @@ if "submitted" not in st.session_state:
 
 st.title("แบบประเมินพฤติกรรมพยาบาล")
 
-# แสดงหน้าฟอร์มประเมินถ้ายังไม่ได้ส่ง
+# หน้าฟอร์มประเมิน
 if not st.session_state.submitted:
     col1, col2, col3 = st.columns([1.5, 1, 1])
     
@@ -57,15 +57,14 @@ if not st.session_state.submitted:
                         st.session_state.submitted = True
                         st.rerun()
                     else:
-                        st.error(f"เกิดข้อผิดพลาดในการส่งข้อมูล (Status: {response.status_code})")
+                        st.error(f"เกิดข้อผิดพลาด (Status: {response.status_code})")
                 except Exception as e:
                     st.error(f"ไม่สามารถเชื่อมต่อฐานข้อมูลได้: {e}")
 
-# แสดงหน้า Success เมื่อส่งเสร็จแล้ว
+# หน้าหลังส่งเสร็จ
 else:
     st.success("บันทึกข้อมูลเรียบร้อยแล้ว! ขอบคุณสำหรับการประเมินครับ")
     st.balloons()
     if st.button("ทำแบบประเมินอีกครั้ง"):
         st.session_state.submitted = False
-        st.rerun()ion_state.submitted = False
-                        st.rerun()
+        st.rerun()
