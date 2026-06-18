@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 def load_data():
     # URL Google Sheet (ต้องตั้งค่าเป็น Public Viewer)
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
-    perm_url = "URL_ของ_SHEET_PERMISSIONS" # เปลี่ยนเป็น URL ของ Sheet ที่เก็บรหัสผ่าน
+    perm_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/edit?usp=sharing" # เปลี่ยนเป็น URL ของ Sheet ที่เก็บรหัสผ่าน
     
     df = pd.read_csv(sheet_url)
     perms_df = pd.read_csv(perm_url.replace('/edit#gid=', '/export?format=csv&gid='))
