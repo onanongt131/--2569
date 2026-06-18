@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 def load_data():
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
     # เปลี่ยน URL นี้เป็นลิงก์ไฟล์สิทธิ์ของคุณ
-    perm_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
+    perm_url = "https://docs.google.com/spreadsheets/d/AKfycbyjb9iX8fUbJ9WEWMceLBjR6WIp6oExLuYbEOdkzr7VW6n4KPNtNsYs1ASpnGf5w_POlQ/export?format=csv"
     
     df = pd.read_csv(sheet_url)
     perms_df = pd.read_csv(perm_url)
