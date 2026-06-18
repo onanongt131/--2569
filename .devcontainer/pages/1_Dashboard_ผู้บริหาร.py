@@ -22,7 +22,7 @@ if check_password():
     # ดึงข้อมูลผ่าน Public CSV link ของ Google Sheet
     # 1. ที่ Google Sheet ให้กด Share > Anyone with the link = Viewer
     # 2. นำ URL มาวาง และเปลี่ยน /edit... เป็น /export?format=csv
-    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/edit?usp=sharing"
+    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
     try:
         df = pd.read_csv(sheet_url.replace('/edit#gid=', '/export?format=csv&gid='))
         
