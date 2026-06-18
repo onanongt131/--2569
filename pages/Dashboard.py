@@ -27,30 +27,41 @@ try:
             if not user_row.empty:
                 access_list = str(user_row.iloc[0]['WardAccess'])
                 
-                # ถ้าไม่ใช้สิทธิ์ ALL ให้กรองข้อมูล
+                # กรองข้อมูล
                 if access_list != "ALL":
                     allowed_wards = [w.strip() for w in access_list.split(',')]
                     df = df[df['หน่วยงาน'].astype(str).str.strip().isin(allowed_wards)]
 
-                # เช็คว่ามีข้อมูลเหลือไหมหลังกรอง
                 if df.empty:
                     st.warning("ไม่พบข้อมูลการประเมินสำหรับหน่วยงานที่คุณดูแล")
                 else:
-                    # ส่วนการแสดงผล
+                    # --- ส่วนของตัวเลือก Filter (ภาพรวม หรือ รายหน่วย) ---
+                    st.sidebar.markdown("---")
+                    all_wards = ["ภาพรวมทั้งหมด"] + sorted(df['หน่วยงาน'].unique().tolist())
+                    selected_ward = st.sidebar.selectbox("เลือกหน่วยงานเพื่อดูรายละเอียด:", all_wards)
+                    
+                    # ใช้ df_display สำหรับแสดงผลกราฟ/ตาราง
+                    if selected_ward != "ภาพรวมทั้งหมด":
+                        df_display = df[df['หน่วยงาน'] == selected_ward]
+                    else:
+                        df_display = df
+
+                    # กำหนดคอลัมน์คะแนน
+                    score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
+
+                    # 1. ร้อยละจำนวนผู้ประเมิน
                     st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-                    progress = df['หน่วยงาน'].value_counts() / 50 * 100
+                    progress = df_display['หน่วยงาน'].value_counts() / 50 * 100
                     st.bar_chart(progress)
 
                     # 2. ร้อยละผลการประเมินภาพรวม (กราฟแนวนอน)
                     st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
-                    avg_scores = df_filtered[score_cols].mean()
-                    # สลับแกนให้แสดงเป็นกราฟแท่งแนวนอน
+                    avg_scores = df_display[score_cols].mean()
                     st.bar_chart(avg_scores / 5 * 100, horizontal=True)
 
-                    # 3. Mean & SD รายข้อ (ปรับให้หัวข้ออยู่คอลัมน์)
+                    # 3. Mean & SD รายข้อ
                     st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
-                    # ใช้ .T (Transpose) เพื่อเปลี่ยนแถวเป็นคอลัมน์
-                    stats = df_filtered[score_cols].agg(['mean', 'std']).round(2).T
+                    stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
                     stats.columns = ['Mean', 'SD']
                     st.dataframe(stats, use_container_width=True)
 
@@ -59,7 +70,7 @@ try:
                     st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", csv, "summary.csv")
 
                     with st.expander("ดูข้อมูลดิบ"):
-                        st.dataframe(df)
+                        st.dataframe(df_display)
             else:
                 st.error("รหัสผ่านไม่ถูกต้อง")
         else:
