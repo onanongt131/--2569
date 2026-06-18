@@ -33,37 +33,39 @@ try:
             
             if not user_row.empty:
             access_list = str(user_row.iloc[0]['WardAccess'])
+            
+            # กรองข้อมูล
             if access_list != "ALL":
                 allowed_wards = [w.strip() for w in access_list.split(',')]
+                df = df[df['หน่วยงาน'].astype(str).str.strip().isin(allowed_wards)]
+            
+            # เช็คว่ามีข้อมูลเหลือไหมหลังกรอง
+            if df.empty:
+                st.warning(f"ไม่พบข้อมูลการประเมินสำหรับหน่วยงานที่คุณดูแล")
+                st.write("ชื่อหน่วยงานในระบบคือ:", df['หน่วยงาน'].unique())
+            else:
+                # --- แสดงข้อมูล (ทุกอย่างต้องเยื้องเข้ามาอยู่ภายใต้ else นี้) ---
                 
-                # --- เพิ่มโค้ดเช็คข้อมูลตรงนี้ ---
-                filtered_df = df[df['หน่วยงาน'].isin(allowed_wards)]
-                
-                if filtered_df.empty:
-                    st.warning(f"ไม่พบข้อมูลการประเมินสำหรับหน่วยงาน: {allowed_wards}")
-                    st.write("รายชื่อหน่วยงานที่มีในระบบตอนนี้คือ:", df['หน่วยงาน'].unique())
-                else:
-                    df = filtered_df
-                    # ... (โค้ดแสดงกราฟและตารางของคุณเดิม) ...
-                    # --- แสดงข้อมูล ---
-            # 1. ร้อยละจำนวนผู้ประเมิน
-            st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-            progress = df['หน่วยงาน'].value_counts() / 50 * 100
-            st.bar_chart(progress)
+                # 1. ร้อยละจำนวนผู้ประเมิน
+                st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
+                progress = df['หน่วยงาน'].value_counts() / 50 * 100
+                st.bar_chart(progress)
 
-            # 2. ร้อยละผลการประเมินภาพรวม
-            st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
-            score_cols = df.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
-            if not score_cols.empty:
-                avg_score = df.groupby('หน่วยงาน')[score_cols].mean().mean(axis=1) / 5 * 100
-                st.bar_chart(avg_score, horizontal=True)
+                # 2. ร้อยละผลการประเมินภาพรวม
+                st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
+                score_cols = df.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
+                if not score_cols.empty:
+                    avg_score = df.groupby('หน่วยงาน')[score_cols].mean().mean(axis=1) / 5 * 100
+                    st.bar_chart(avg_score, horizontal=True)
 
-            # 3. Mean & SD รายข้อ
-            st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
-            stats = df.groupby('หน่วยงาน')[score_cols].agg(['mean', 'std']).round(2)
-            st.dataframe(stats)
-            st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", stats.to_csv().encode('utf-8'), "summary.csv")
+                # 3. Mean & SD รายข้อ
+                st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
+                stats = df.groupby('หน่วยงาน')[score_cols].agg(['mean', 'std']).round(2)
+                st.dataframe(stats)
+                st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", stats.to_csv().encode('utf-8'), "summary.csv")
 
-            # 4. ข้อมูลดิบ
-            with st.expander("ดูข้อมูลดิบ"):
-                st.dataframe(df)
+                # 4. ข้อมูลดิบ
+                with st.expander("ดูข้อมูลดิบ"):
+                    st.dataframe(df)
+        else:
+            st.error("รหัสผ่านไม่ถูกต้อง"))
