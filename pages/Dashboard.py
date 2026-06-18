@@ -5,14 +5,18 @@ import numpy as np
 st.set_page_config(layout="wide")
 
 # --- ฟังก์ชันดึงข้อมูลสิทธิ์และประเมิน ---
-@st.cache_data(ttl=60) # อัปเดตข้อมูลทุก 60 วินาที
+@st.cache_data(ttl=60)
 def load_data():
-    # URL Google Sheet (ต้องตั้งค่าเป็น Public Viewer)
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
-    perm_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/edit?usp=sharing" # เปลี่ยนเป็น URL ของ Sheet ที่เก็บรหัสผ่าน
+    # เปลี่ยน URL นี้เป็นลิงก์ไฟล์สิทธิ์ของคุณ
+    perm_url = "https://docs.google.com/spreadsheets/d/ใส่_ID_ชีท_สิทธิ์ของคุณ/export?format=csv"
     
     df = pd.read_csv(sheet_url)
-    perms_df = pd.read_csv(perm_url.replace('/edit#gid=', '/export?format=csv&gid='))
+    perms_df = pd.read_csv(perm_url)
+    
+    # Debug: ให้แสดงชื่อคอลัมน์ที่ระบบอ่านได้ ถ้ายัง error
+    # st.write("คอลัมน์ที่พบในไฟล์สิทธิ์:", perms_df.columns.tolist()) 
+    
     return df, perms_df
 
 # --- ส่วนแสดงผล ---
