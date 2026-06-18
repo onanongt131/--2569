@@ -1,14 +1,20 @@
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.set_page_config(layout="wide")
-
-# --- ฟังก์ชันดึงข้อมูล ---
 @st.cache_data(ttl=60)
 def load_data():
-    df = pd.read_csv("data.csv") # ชื่อไฟล์ที่อัปโหลดเข้า GitHub
-    perms_df = pd.read_csv("permissions.csv") # ชื่อไฟล์ที่อัปโหลดเข้า GitHub
+    # ใช้ os.path.join เพื่อระบุตำแหน่งไฟล์ให้ถูกต้องไม่ว่าจะรันจากที่ไหน
+    # __file__ คือที่อยู่ของ Dashboard.py ดังนั้น os.path.dirname(os.path.dirname(__file__)) คือโฟลเดอร์หลัก
+    base_path = os.path.dirname(os.path.dirname(__file__))
+    
+    data_path = os.path.join(base_path, 'data.csv')
+    perms_path = os.path.join(base_path, 'permissions.csv')
+    
+    df = pd.read_csv(data_path)
+    perms_df = pd.read_csv(perms_path)
+    
     return df, perms_df
 
 # --- ส่วนแสดงผล ---
