@@ -1,53 +1,61 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 
-st.set_page_config(page_title="Dashboard ผู้บริหาร", layout="wide")
+st.set_page_config(layout="wide")
 
-# ระบบล็อกอิน
-def check_password():
-    if "password_correct" not in st.session_state:
-        st.session_state.password_correct = False
-    if not st.session_state.password_correct:
-        pwd = st.text_input("รหัสผ่าน:", type="password")
-        if pwd == "Admin1234":
-            st.session_state.password_correct = True
-            st.rerun()
-        return False
-    return True
-
-if check_password():
-    st.title("📊 Dashboard สรุปผลการประเมินพยาบาล")
+# --- ฟังก์ชันดึงข้อมูลสิทธิ์และประเมิน ---
+@st.cache_data(ttl=60) # อัปเดตข้อมูลทุก 60 วินาที
+def load_data():
+    # URL Google Sheet (ต้องตั้งค่าเป็น Public Viewer)
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
+    perm_url = "URL_ของ_SHEET_PERMISSIONS" # เปลี่ยนเป็น URL ของ Sheet ที่เก็บรหัสผ่าน
     
-    try:
-        df = pd.read_csv(sheet_url)
-        # ปรับชื่อคอลัมน์ให้เหมาะสม (ถ้าชื่อใน Sheet คือ 'หน่วยงาน')
-        ward_col = 'หน่วยงาน' if 'หน่วยงาน' in df.columns else 'ward'
+    df = pd.read_csv(sheet_url)
+    perms_df = pd.read_csv(perm_url.replace('/edit#gid=', '/export?format=csv&gid='))
+    return df, perms_df
+
+# --- ส่วนแสดงผล ---
+st.title("📊 Dashboard สรุปผลการประเมินพยาบาล")
+
+pwd = st.sidebar.text_input("รหัสผ่านผู้บริหาร:", type="password")
+if pwd:
+    df, perms_df = load_data()
+    user_row = perms_df[perms_df['Password'] == pwd]
+    
+    if not user_row.empty:
+        # กรองข้อมูลตามสิทธิ์
+        access_list = user_row.iloc[0]['WardAccess']
+        if access_list != "ALL":
+            allowed_wards = [w.strip() for w in access_list.split(',')]
+            df = df[df['หน่วยงาน'].isin(allowed_wards)]
         
-        # ส่วนที่ 1: เลือกดูภาพรวมหรือรายหน่วยงาน
-        st.subheader("เลือกขอบเขตการดูข้อมูล")
-        view_mode = st.radio("โหมดการดู:", ["ภาพรวมทั้งหมด", "แยกรายหน่วยงาน"], horizontal=True)
+        # ส่วนที่ 1: % การทำแบบประเมิน (สมมติเป้าหมาย 50 ต่อหน่วย)
+        st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
+        progress = df['หน่วยงาน'].value_counts() / 50 * 100
+        st.bar_chart(progress)
+
+        # ส่วนที่ 2: ร้อยละภาพรวม (กราฟแนวนอน)
+        st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
+        score_cols = df.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
+        avg_score = df.groupby('หน่วยงาน')[score_cols].mean().mean(axis=1) / 5 * 100
+        st.bar_chart(avg_score, horizontal=True)
+
+        # ส่วนที่ 3: Mean & SD รายข้อ
+        st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
+        stats = df.groupby('หน่วยงาน')[score_cols].agg(['mean', 'std']).round(2)
+        st.dataframe(stats)
         
-        target_df = df
-        if view_mode == "แยกรายหน่วยงาน":
-            selected_ward = st.selectbox("เลือกหน่วยงาน:", df[ward_col].unique())
-            target_df = df[df[ward_col] == selected_ward]
-        
-        # ส่วนที่ 2: สรุปคะแนนเฉลี่ยรายข้อ
-        st.subheader("คะแนนเฉลี่ยรายหัวข้อ")
-        # เลือกเฉพาะคอลัมน์ที่เป็นตัวเลข (คะแนน)
-        score_cols = target_df.select_dtypes(include=['number']).columns
-        # ลบเฉพาะคอลัมน์ 'อายุผู้ประเมิน (ปี)' ออกจากการคำนวณคะแนน
-        score_cols = [c for c in score_cols if "อายุ" not in c]
-        
-        means = target_df[score_cols].mean()
-        st.bar_chart(means)
-        
-        # ส่วนที่ 3: ข้อมูลดิบ
-        with st.expander("ดูตารางข้อมูลดิบ"):
-            st.dataframe(target_df)
-            csv = target_df.to_csv(index=False).encode('utf-8')
-            st.download_button("ดาวน์โหลดข้อมูล CSV", csv, "report.csv", "text/csv")
-            
-    except Exception as e:
-        st.error(f"ไม่สามารถดึงข้อมูลได้: {e}")
+        # ดาวน์โหลดไฟล์
+        csv = stats.to_csv().encode('utf-8')
+        st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", csv, "summary.csv")
+
+        # ส่วนที่ 4: ข้อมูลดิบ
+        with st.expander("ดูข้อมูลดิบ"):
+            st.dataframe(df)
+            raw_csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button("ดาวน์โหลดข้อมูลดิบ (CSV)", raw_csv, "raw_data.csv")
+    else:
+        st.error("รหัสผ่านไม่ถูกต้อง")
+else:
+    st.info("กรุณาใส่รหัสผ่านที่แถบด้านซ้ายมือเพื่อดูข้อมูล")
