@@ -7,7 +7,9 @@ st.set_page_config(layout="wide")
 # --- ฟังก์ชันดึงข้อมูลสิทธิ์และประเมิน ---
 @st.cache_data(ttl=60)
 def load_data():
-    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/pub?output=csv"
+   # ในโค้ด pages/Dashboard.py
+# แทนที่ลิงก์เดิมด้วยรูปแบบนี้:
+sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/gviz/tq?tqx=out:csv&sheet=UserPermissions"
     # เปลี่ยน URL นี้เป็นลิงก์ไฟล์สิทธิ์ของคุณ
     perm_url = "https://docs.google.com/spreadsheets/d/1m3qfh3x-H1EdEPW75rfuuVtR9pAcUZisOYK5CNt2LFPzipC6TNombBJ5/pub?output=csv"
     
