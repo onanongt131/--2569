@@ -7,14 +7,10 @@ st.set_page_config(layout="wide")
 
 @st.cache_data(ttl=60)
 def load_data():
-    # ใช้ os เพื่อหา path ปัจจุบันให้ชัวร์
-    base_dir = os.path.dirname(os.path.dirname(__file__))
-    data_path = os.path.join(base_dir, "data.csv")
-    perm_path = os.path.join(base_dir, "permissions.csv")
-    
-    # อ่านไฟล์โดยระบุ encoding ให้รองรับภาษาไทย
-    df = pd.read_csv(data_path, encoding='utf-8-sig')
-    perms_df = pd.read_csv(perm_path, encoding='utf-8-sig')
+    # 1. ตรวจสอบว่าไฟล์อยู่ในโฟลเดอร์เดียวกันกับไฟล์ Dashboard.py หรือไม่
+    # ถ้าไฟล์ data.csv และ permissions.csv อยู่ในโฟลเดอร์ pages/ ให้ใช้ชื่อไฟล์ตรงๆ ได้เลย
+    df = pd.read_csv("pages/data.csv", encoding='utf-8-sig')
+    perms_df = pd.read_csv("pages/permissions.csv", encoding='utf-8-sig')
     
     return df, perms_df
 
