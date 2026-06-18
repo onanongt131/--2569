@@ -7,16 +7,8 @@ st.set_page_config(layout="wide")
 # --- ฟังก์ชันดึงข้อมูล ---
 @st.cache_data(ttl=60)
 def load_data():
-    # URL ของข้อมูลประเมิน
-    # ใช้รูปแบบนี้เพื่อดึงข้อมูลจาก Tab ที่ต้องการ (เปลี่ยน sheet=ชื่อชีทของคุณ)
-    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/gviz/tq?tqx=out:csv&sheet=Sheet1"
-    
-    # URL ของไฟล์สิทธิ์ (ต้องมั่นใจว่าเปิด Publish to web เป็น CSV แล้ว)
-    perm_url = "https://docs.google.com/spreadsheets/d/1m3qfh3x-H1EdEPW75rfuuVtR9pAcUZisOYK5CNt2LFPzipC6TNombBJ5/pub?output=csv"
-    
-    df = pd.read_csv(sheet_url)
-    perms_df = pd.read_csv(perm_url)
-    
+    df = pd.read_csv("data.csv") # ชื่อไฟล์ที่อัปโหลดเข้า GitHub
+    perms_df = pd.read_csv("permissions.csv") # ชื่อไฟล์ที่อัปโหลดเข้า GitHub
     return df, perms_df
 
 # --- ส่วนแสดงผล ---
