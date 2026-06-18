@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+import altair as alt
 
 st.set_page_config(layout="wide")
 
@@ -21,6 +22,7 @@ try:
 
     if pwd:
         user_row = perms_df[perms_df['Password'].astype(str).str.strip() == str(pwd).strip()]
+        
         if not user_row.empty:
             access_list = str(user_row.iloc[0]['WardAccess'])
             if access_list != "ALL":
@@ -35,38 +37,4 @@ try:
                 selected_ward = st.sidebar.selectbox("เลือกหน่วยงาน:", all_wards)
                 
                 df_display = df[df['หน่วยงาน'] == selected_ward] if selected_ward != "ภาพรวมทั้งหมด" else df
-                score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
-
-                import altair as alt
-
-                # 1. ร้อยละจำนวนผู้ประเมิน
-                st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
-                chart1 = alt.Chart(progress_df).mark_bar().encode(
-                    x='หน่วยงาน',
-                    y=alt.Y('Percent', scale=alt.Scale(domain=[0, 100]))
-                )
-                st.altair_chart(chart1, use_container_width=True)
-                
-                # 2. ร้อยละผลการประเมิน
-                st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
-                avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
-                avg_data.columns = ['หัวข้อ', 'Score']
-                
-                chart2 = alt.Chart(avg_data).mark_bar().encode(
-                    x=alt.X('Score', scale=alt.Scale(domain=[0, 100])),
-                    y='หัวข้อ'
-                )
-                st.altair_chart(chart2, use_container_width=True)
-                
-                # ส่วนที่ 3: Mean & SD
-                st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
-                stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
-                stats.columns = ['Mean', 'SD']
-                stats['SD'] = stats['SD'].fillna(0)
-                st.dataframe(stats, use_container_width=True)
-                
-                st.download_button("ดาวน์โหลดตารางสรุปผล (CSV)", stats.to_csv().encode('utf-8-sig'), "summary.csv")
-        else:
-            st.error("รหัสผ่านไม่ถูกต้อง")
-except Exception as e:
-    st.error(f"เกิดข้อผิดพลาด: {e}")
+                score_cols = df_display.select_dtypes(include=[np.number]).columns.
