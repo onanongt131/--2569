@@ -49,15 +49,16 @@ try:
                     # กำหนดคอลัมน์คะแนน
                     score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
-                    # 1. ร้อยละจำนวนผู้ประเมิน
+                   # 1. ร้อยละจำนวนผู้ประเมิน
                     st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
                     progress = df_display['หน่วยงาน'].value_counts() / 50 * 100
                     st.bar_chart(progress)
 
-                    # 2. ร้อยละผลการประเมินภาพรวม (กราฟแนวนอน)
+                    # ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม
                     st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
                     avg_scores = df_display[score_cols].mean()
-                    st.bar_chart(avg_scores / 5 * 100, horizontal=True)
+                    # เพิ่มพารามิเตอร์ y_min=0, y_max=100
+                    st.bar_chart(avg_scores / 5 * 100, horizontal=True, y_min=0, y_max=100)
 
                     # 3. Mean & SD รายข้อ
                     st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
