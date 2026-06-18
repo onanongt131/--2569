@@ -36,7 +36,7 @@ ICCU
 MICU
 NICU
 OPD
-ODS
+ศูนย์ ODS&MIS
 ห้องผ่าตัด
 PICU
 Sick newborn
@@ -48,4 +48,3 @@ Wound care
 Echo
 OPD จิตเวช
 เคมีบำบัด
-ศููนย์ ODS&MIS
