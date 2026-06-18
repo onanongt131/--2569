@@ -40,7 +40,7 @@ if not st.session_state.submitted:
     results = {}
     st.write("---")
     for i, item in enumerate(items):
-        results[f"q{i+1}"] = st.radio(f"{i+1}. {item}", [5, 4, 3, 2, 1], horizontal=True, key=f"q_{i}")
+        results[f"q{i+1}"] = st.radio(f"{i+1}. {item}", [5, 4, 3, 2, 1], horizontal=True, index=None, key=f"q_{i}")
 
     suggestion = st.text_area("ข้อเสนอแนะเพิ่มเติม", key="sugg_unique")
 
