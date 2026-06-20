@@ -118,13 +118,13 @@ else:
         # --- ส่วนแสดง Metrics ที่ปรับปรุง ---
         
         # 1. คำนวณจำนวนผู้ประเมินตามการกรองจริง
-        total_count = int(counts['Count'].sum())
+        total_count = int(df_display.shape[0])
         
         # 2. คำนวณเป้าหมายตามการเลือก
-        if selected_ward == "ภาพรวมทั้งหมด":
+       if selected_ward == "ภาพรวมทั้งหมด":
             display_target = 780
         else:
-            # ดึงเป้าหมายจาก target_map เฉพาะหน่วยงานที่เลือก
+            # ดึงเป้าหมายจาก target_map โดยตรง (ถ้าไม่มีหน่วยงานใน map ให้ค่าเป็น 0)
             display_target = target_map.get(selected_ward, 0)
             
         # 3. คำนวณร้อยละ (ต้องเช็คไม่ให้หารด้วย 0)
