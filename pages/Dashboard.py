@@ -44,7 +44,9 @@ else:
         user_info = st.session_state.user_info
         
         # ปุ่มรีเฟรชหน้าเว็บ (เป็นวิธีที่ง่ายที่สุดในการดึงข้อมูลใหม่จาก GitHub)
+        # ปรับแก้ปุ่มอัปเดต
         if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
+            st.session_state.selected_ward = "ภาพรวมทั้งหมด" # สั่งรีเซ็ตค่า
             st.rerun()
 
         # กรองข้อมูลตามสิทธิ์
@@ -56,13 +58,22 @@ else:
             df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
         
         # เลือกหน่วยงาน
+       # --- ปรับแก้ส่วนเลือกหน่วยงาน ---
+        # ถ้าไม่มีค่าใน session_state ให้เริ่มที่ "ภาพรวมทั้งหมด"
+        if 'selected_ward' not in st.session_state:
+            st.session_state.selected_ward = "ภาพรวมทั้งหมด"
+
+        # เลือกหน่วยงาน
         all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
+        
+        # ใช้ key เพื่อผูกกับ session_state และเพิ่ม search/placeholder ตามที่ต้องการ
         selected_ward = st.selectbox(
             "เลือกหน่วยงาน:", 
-            all_wards, 
-            index=0, 
+            all_wards,
+            key='selected_ward',
             placeholder="พิมพ์เพื่อค้นหาหน่วยงาน..."
         )
+        
         df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
         
         # ส่วนแสดงผลกราฟ 3 ส่วน
