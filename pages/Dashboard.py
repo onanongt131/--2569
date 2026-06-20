@@ -99,8 +99,8 @@ else:
         
         # แสดง Metrics สรุปผล
         total_count = int(counts['Count'].sum())
-        total_target = 780 
-        total_percent = (total_count / total_target * 100)
+        total_target = int(progress_df['Target'].sum())
+        total_percent = (total_count / total_target * 100) if total_target > 0 else 0
         
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนผู้ประเมินทั้งหมด", f"{total_count} คน")
