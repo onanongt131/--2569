@@ -99,7 +99,7 @@ else:
         
         # แสดง Metrics สรุปผล
         total_count = int(counts['Count'].sum())
-        total_target = int(progress_df['Target'].sum())
+        total_target = int(counts['Target'].sum())
         total_percent = (total_count / total_target * 100) if total_target > 0 else 0
         
         col1, col2, col3 = st.columns(3)
