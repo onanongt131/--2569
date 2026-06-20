@@ -5,10 +5,18 @@ import altair as alt
 import os # <--- เพิ่ม import นี้ครับ แก้ปัญหา NameError
 
 # ฟังก์ชันโหลดข้อมูล - ใช้การอ่านไฟล์ตรงๆ เพื่อความสดของข้อมูล
+# แก้ไขฟังก์ชัน load_data เป็นแบบนี้ครับ
+@st.cache_data(ttl=60)
 def load_data():
-    df = pd.read_csv("data.csv", encoding='utf-8-sig')
+    # เปลี่ยนจากการอ่านไฟล์ data.csv มาเป็น URL ของ Google Sheets
+    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
+    df = pd.read_csv(sheet_url, encoding='utf-8-sig')
+    
+    # หมายเหตุ: สำหรับ permissions.csv และ targets.csv 
+    # หากคุณยังเก็บไว้ใน GitHub เหมือนเดิม ก็สามารถอ่านด้วยวิธีปกติได้ครับ
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
     targets_df = pd.read_csv("targets.csv", encoding='utf-8-sig')
+    
     return df, perms_df, targets_df
 
 st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
