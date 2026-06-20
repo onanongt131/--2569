@@ -98,14 +98,22 @@ else:
         st.altair_chart(chart1, use_container_width=True)
         
         # แสดง Metrics สรุปผล
+       # --- แทนที่ส่วนแสดง Metrics เดิมด้วยส่วนนี้ ---
+        
+        # คำนวณค่าเฉพาะหน่วยงานที่เลือก
+        if selected_ward == "ภาพรวมทั้งหมด":
+            current_target = 780
+        else:
+            # ดึงค่าเป้าหมายจาก target_map โดยตรงตามชื่อหน่วยงานที่เลือก
+            current_target = target_map.get(selected_ward, 1)
+
         total_count = int(counts['Count'].sum())
-        total_target = int(counts['Target'].sum())
-        total_percent = (total_count / total_target * 100) if total_target > 0 else 0
+        total_percent = (total_count / current_target * 100) if current_target > 0 else 0
         
         col1, col2, col3 = st.columns(3)
-        col1.metric("จำนวนผู้ประเมินทั้งหมด", f"{total_count} คน")
-        col2.metric("เป้าหมายทั้งหมด", f"{total_target} คน")
-        col3.metric("ร้อยละความสำเร็จรวม", f"{total_percent:.1f}%")
+        col1.metric("จำนวนผู้ประเมิน", f"{total_count} คน")
+        col2.metric("เป้าหมายหน่วยงาน", f"{current_target} คน")
+        col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
         
         st.write("---") # เส้นคั่นก่อนขึ้นส่วนที่ 2
         
