@@ -2,21 +2,15 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-import os # <--- เพิ่ม import นี้ครับ แก้ปัญหา NameError
+import os
 
-# ฟังก์ชันโหลดข้อมูล - ใช้การอ่านไฟล์ตรงๆ เพื่อความสดของข้อมูล
-# แก้ไขฟังก์ชัน load_data เป็นแบบนี้ครับ
+# ฟังก์ชันโหลดข้อมูล
 @st.cache_data(ttl=60)
 def load_data():
-    # เปลี่ยนจากการอ่านไฟล์ data.csv มาเป็น URL ของ Google Sheets
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
     df = pd.read_csv(sheet_url, encoding='utf-8-sig')
-    
-    # หมายเหตุ: สำหรับ permissions.csv และ targets.csv 
-    # หากคุณยังเก็บไว้ใน GitHub เหมือนเดิม ก็สามารถอ่านด้วยวิธีปกติได้ครับ
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
     targets_df = pd.read_csv("targets.csv", encoding='utf-8-sig')
-    
     return df, perms_df, targets_df
 
 st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
@@ -37,16 +31,12 @@ if not st.session_state.password_correct:
         else:
             st.error("รหัสผ่านไม่ถูกต้อง")
 else:
-    # เมื่อ Login สำเร็จ
     try:
-        # ใช้การโหลดข้อมูลแบบปกติ ไม่ใช้ @st.cache_data เพื่อให้ได้ข้อมูลล่าสุดเสมอ
         df, _, targets_df = load_data()
         user_info = st.session_state.user_info
         
-        # ปุ่มรีเฟรชหน้าเว็บ (เป็นวิธีที่ง่ายที่สุดในการดึงข้อมูลใหม่จาก GitHub)
-        # ปรับแก้ปุ่มอัปเดต
         if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
-            st.session_state.selected_ward = "ภาพรวมทั้งหมด" # สั่งรีเซ็ตค่า
+            st.session_state.selected_ward = "ภาพรวมทั้งหมด"
             st.rerun()
 
         # กรองข้อมูลตามสิทธิ์
@@ -58,15 +48,11 @@ else:
             df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
         
         # เลือกหน่วยงาน
-       # --- ปรับแก้ส่วนเลือกหน่วยงาน ---
-        # ถ้าไม่มีค่าใน session_state ให้เริ่มที่ "ภาพรวมทั้งหมด"
         if 'selected_ward' not in st.session_state:
             st.session_state.selected_ward = "ภาพรวมทั้งหมด"
 
-        # เลือกหน่วยงาน
         all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
         
-        # ใช้ key เพื่อผูกกับ session_state และเพิ่ม search/placeholder ตามที่ต้องการ
         selected_ward = st.selectbox(
             "เลือกหน่วยงาน:", 
             all_wards,
@@ -76,11 +62,9 @@ else:
         
         df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
         
-        # ส่วนแสดงผลกราฟ 3 ส่วน
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
         # ส่วนที่ 1
-        # ส่วนที่ 1: ร้อยละตามเป้าหมาย
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
         
         target_map = {
@@ -105,20 +89,13 @@ else:
         counts = df_display['หน่วยงาน'].value_counts().reset_index()
         counts.columns = ['หน่วยงาน', 'Count']
         
-        counts['Target'] = counts['หน่วยงาน'].map(target_map).fillna(1)
-        counts['Percent'] = (counts['Count'] / counts['Target'] * 100).clip(upper=100)
-        
         chart1 = alt.Chart(counts).mark_bar().encode(
-            x='หน่วยงาน', y=alt.Y('Percent', scale=alt.Scale(domain=[0, 100]))
+            x='หน่วยงาน', y=alt.Y('Count')
         )
         st.altair_chart(chart1, use_container_width=True)
         
-        # --- ส่วนแสดง Metrics ที่ปรับปรุงให้รวมเป้าหมายเฉพาะหน่วยงานใน Group ---
-        
-        # --- ส่วนแสดง Metrics ที่ปรับปรุง ---
-        
-       total_count = int(df_display.shape[0])
-        
+        # ส่วน Metrics
+        total_count = int(df_display.shape[0])
         if selected_ward == "ภาพรวมทั้งหมด":
             display_target = 780
         else:
@@ -133,14 +110,13 @@ else:
         
         st.write("---")
         
-        # ส่วนที่ 2
+        # ส่วนที่ 2 และ 3
         st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
         chart2 = alt.Chart(avg_data).mark_bar().encode(x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), y='หัวข้อ')
         st.altair_chart(chart2, use_container_width=True)
 
-        # ส่วนที่ 3
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         stats.columns = ['Mean', 'SD']
