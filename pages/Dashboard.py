@@ -57,7 +57,12 @@ else:
         
         # เลือกหน่วยงาน
         all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
-        selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards)
+        selected_ward = st.selectbox(
+            "เลือกหน่วยงาน:", 
+            all_wards, 
+            index=0, 
+            placeholder="พิมพ์เพื่อค้นหาหน่วยงาน..."
+        )
         df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
         
         # ส่วนแสดงผลกราฟ 3 ส่วน
