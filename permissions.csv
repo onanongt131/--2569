@@ -1,13 +1,13 @@
 Password,WardAccess,Role
 Admin1234,ALL,Admin
-GroupM1,"อายุรกรรม 2,อายุรกรรม 3,อายุรกรรม 4,อายุรกรรม 5,อายุรกรรม 6,อายุรกรรม 7",GroupHead
+GroupM1,"อายุรกรรม 2,อายุรกรรม 3,อายุรกรรม 4,อายุรกรรม 5,อายุรกรรม 6,อายุรกรรม 7,พิเศษอายุรกรรม 5,พิเศษอายุรกรรม 7",GroupHead
 WARDP1,กุมารเวชกรรม 1,WardHead
 WARDP2,กุมารเวชกรรม 2,WardHead
 ,งานเวชศาสตร์ใต้น้ำ,WardHead
 ,งานไตเทียม HD/CAPD,WardHead
 WARDNK2,น้อมเกล้า 2,WardHead
-WARDNK2,น้อมเกล้า 3,WardHead
-WARDNK2,น้อมเกล้า 4,WardHead
+WARDNK3,น้อมเกล้า 3,WardHead
+WARDNK4,น้อมเกล้า 4,WardHead
 060513,"นรีเวชกรรม,หลังคลอด,หลังคลอด,หลวงพ่อแช่มชั้น 4",GroupHead
 ,พิเศษอายุรกรรม 5,WardHead
 ,พิเศษอายุรกรรม 7,WardHead
