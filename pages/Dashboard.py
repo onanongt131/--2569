@@ -2,27 +2,24 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-import os
 
-# ฟังก์ชันโหลดข้อมูล
 @st.cache_data(ttl=60)
 def load_data():
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
     df = pd.read_csv(sheet_url, encoding='utf-8-sig')
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
-    targets_df = pd.read_csv("targets.csv", encoding='utf-8-sig')
-    return df, perms_df, targets_df
+    return df, perms_df
 
 st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
 
-# ระบบตรวจสอบสิทธิ์
+# ระบบ Login
 if "password_correct" not in st.session_state:
     st.session_state.password_correct = False
 
 if not st.session_state.password_correct:
     pwd = st.text_input("รหัสผ่านผู้บริหาร:", type="password")
     if st.button("เข้าสู่ระบบ"):
-        _, perms_df, _ = load_data()
+        _, perms_df = load_data()
         user_row = perms_df[perms_df['Password'].astype(str).str.strip() == str(pwd).strip()]
         if not user_row.empty:
             st.session_state.password_correct = True
@@ -32,119 +29,66 @@ if not st.session_state.password_correct:
             st.error("รหัสผ่านไม่ถูกต้อง")
 else:
     try:
-        df, _, targets_df = load_data()
+        df, _ = load_data()
         user_info = st.session_state.user_info
-        
-        if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
-            st.session_state.selected_ward = "ภาพรวมทั้งหมด"
-            st.rerun()
-
-        # กรองข้อมูลตามสิทธิ์
         access_list = str(user_info['WardAccess'])
+
+        # 1. กำหนดตัวแปร df_filtered ให้ปลอดภัย (ทำนอก if-else)
         if access_list == "ALL":
             df_filtered = df
+            all_wards = ["ภาพรวมทั้งหมด"] + sorted(df['หน่วยงาน'].unique().tolist())
         else:
-            # เลือกหน่วยงาน
-        # ปรับ logic: ถ้าไม่ใช่แอดมิน (เข้าถึงได้ไม่ทุกหน่วย) ให้เริ่มที่หน่วยงานแรกในกลุ่มของเขาเลย
-            allowed_wards = [w.strip() for w in access_list.split(',')] if access_list != "ALL" else []
-            
-            if access_list == "ALL":
-                all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
-            else:
-                # ถ้าเป็นหัวหน้ากลุ่ม ให้มีแค่หน่วยงานในกลุ่มเท่านั้น (ไม่มี "ภาพรวมทั้งหมด")
-                all_wards = sorted(allowed_wards)
-    
-            # จัดการค่าเริ่มต้นใน session_state
-            if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
-                st.session_state.selected_ward = all_wards[0] # บังคับให้เลือกหน่วยงานแรกในกลุ่มเสมอ
-    
-            # เลือกหน่วยงาน (ไม่ต้องแสดง placeholder ถ้าเป็นกลุ่มงาน)
-            selected_ward = st.selectbox(
-                "เลือกหน่วยงาน:", 
-                all_wards,
-                key='selected_ward'
-            )
-            
-            # กรองข้อมูล
-            df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
+            allowed_wards = [w.strip() for w in access_list.split(',')]
+            df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
+            all_wards = sorted(allowed_wards)
+
+        if st.button("🔄 อัปเดตข้อมูล"):
+            st.rerun()
+
+        # 2. เลือกหน่วยงาน
+        if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
+            st.session_state.selected_ward = all_wards[0]
+
+        selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards, key='selected_ward')
         
+        # 3. เตรียมข้อมูลแสดงผล
+        if selected_ward == "ภาพรวมทั้งหมด":
+            df_display = df_filtered
+            display_target = 780
+        else:
+            df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
+            # เพิ่มหน่วยงานให้ครบใน dict นี้
+            target_map = {"อายุรกรรม 2": 15, "อายุรกรรม 4": 15, "อายุรกรรม 5": 15} 
+            display_target = target_map.get(selected_ward, 10)
+
+        # 4. ส่วนแสดงผลกราฟ 3 ส่วน
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
         # ส่วนที่ 1
-        st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
-        
-        target_map = {
-            "กุมารเวชกรรม 1": 10, "กุมารเวชกรรม 2": 10, "งานเวชศาสตร์ใต้น้ำ": 5, "งานไตเทียม HD/CAPD": 10,
-            "น้อมเกล้า 2": 10, "น้อมเกล้า 3": 10, "น้อมเกล้า 4": 10, "นรีเวชกรรม": 10,
-            "พิเศษอายุรกรรม 5": 10, "พิเศษอายุรกรรม 7": 10, "รติพัฒน์": 10, "รส.200 ปี บน": 10,
-            "รส. 200 ปี ล่าง": 10, "หลวงพ่อแช่มชั้น 2": 10, "หลวงพ่อแช่มชั้น 3": 10, "ศัลยกรรมกระดูก": 15,
-            "ศัลยกรรมชาย": 15, "ศัลยกรรมประสาท": 15, "ศัลยกรรมหญิง": 15, "หลวงพ่อแช่มชั้น 4": 10,
-            "หลังคลอด": 15, "ห้องคลอด": 10, "อายุรกรรม 4": 15, "อายุรกรรม 2": 15,
-            "อายุรกรรม 3": 15, "อายุรกรรม 5": 15, "อายุรกรรม 6": 15, "อายุรกรรม 7": 15,
-            "วิสัญญี": 20, "CCU": 8, "Cath lab": 6, "Intervention": 7, "EENT": 10, "ER/ศูนย์ refer": 35,
-            "ICCU": 10, "MICU": 10, "NICU": 10, "OPD": 10, "ศูนย์ ODS&MIS": 10, "ห้องผ่าตัด": 20,
-            "PICU": 5, "Sick newborn": 10, "SICU": 5, "Stroke unit": 5, "RCU": 10, "สงฆ์อาพาธ": 10,
-            "Wound care": 6, "Echo": 6, "OPD จิตเวช": 10, "เคมีบำบัด": 7, "OPD นรีเวช": 10,
-            "OPD ศัลยกรรม": 10, "OPD กระดูก": 10, "OPD อายุรกรรม": 10, "OPD เบาหวาน": 10,
-            "OPD งานเอดส์": 10, "OPDให้คำปรึกษา": 10, "OPD วัณโรค": 10, "OPD กุมารเวช": 10,
-            "OPDAdmit+refer": 10, "OPD WCC": 10, "OPD ENT": 10, "OPD ตา": 10, "OPD Admit": 10,
-            "OPD จุดคัดกรอง": 10, "OPD วชิระคลินิก": 10, "OPD ARI": 10, "OPD ทำแผล": 10,
-            "OPD ฉีดยา": 10, "OPD เคมีบำบัด": 10, "OPD ฝากครรภ์": 10, "ศููนย์ใจรักษ์": 10
-        }
-
-        counts = df_display['หน่วยงาน'].value_counts().reset_index()
-        counts.columns = ['หน่วยงาน', 'Count']
-        
-        chart1 = alt.Chart(counts).mark_bar().encode(
-            x='หน่วยงาน', y=alt.Y('Count')
-        )
-        st.altair_chart(chart1, use_container_width=True)
-        
-       # --- ปรับปรุงส่วนแสดงผล Metrics ---
-        
-        # 1. คำนวณจำนวนผู้ประเมินตามการกรองจริง
-       # --- ปรับปรุงส่วนแสดงผล Metrics ให้แม่นยำ ---
-        
-        # 1. คำนวณจำนวนผู้ประเมินตามการกรองจริงจาก df_display
+        st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
         total_count = int(df_display.shape[0])
-        
-        # 2. คำนวณค่าเป้าหมาย
-        # ถ้าเลือก "ภาพรวมทั้งหมด" ให้ใช้ 780
-        # ถ้าเลือกหน่วยงานอื่น ให้ดึงจาก target_map (ถ้าหาไม่เจอให้เป็น 0)
-        if selected_ward == "ภาพรวมทั้งหมด":
-            display_target = 780
-        else:
-            # ดึงค่าเป้าหมายเฉพาะหน่วยงานที่เลือกจาก map
-            display_target = target_map.get(selected_ward, 0)
-            
-        # 3. คำนวณร้อยละ (ป้องกันหารด้วย 0)
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
-        # 4. แสดงผล Metric
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนผู้ประเมิน", f"{total_count} คน")
         col2.metric("เป้าหมาย", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
-        
-        st.write("---")
-        
-        
-        # ส่วนที่ 2 และ 3
-        st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
+
+        # ส่วนที่ 2
+        st.subheader("ส่วนที่ 2: ผลการประเมินภาพรวม")
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
         chart2 = alt.Chart(avg_data).mark_bar().encode(x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), y='หัวข้อ')
         st.altair_chart(chart2, use_container_width=True)
 
+        # ส่วนที่ 3
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
-        stats.columns = ['Mean', 'SD']
-        stats['SD'] = stats['SD'].fillna(0)
         st.dataframe(stats, use_container_width=True)
 
         if st.button("ออกจากระบบ"):
             st.session_state.password_correct = False
             st.rerun()
-            
+
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
