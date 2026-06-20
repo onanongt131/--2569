@@ -3,7 +3,14 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-# ตั้งค่าเป้าหมาย (ใช้ Dictionary เพื่อความเสถียร)
+@st.cache_data(ttl=60)
+def load_data():
+    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
+    df = pd.read_csv(sheet_url, encoding='utf-8-sig')
+    perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
+    return df, perms_df
+
+# ตารางเป้าหมาย (นำมาวางไว้ตรงนี้เพื่อให้เรียกใช้ได้ทุกจุด)
 target_map = {
     "กุมารเวชกรรม 1": 10, "กุมารเวชกรรม 2": 10, "งานเวชศาสตร์ใต้น้ำ": 5, "งานไตเทียม HD/CAPD": 10,
     "น้อมเกล้า 2": 10, "น้อมเกล้า 3": 10, "น้อมเกล้า 4": 10, "นรีเวชกรรม": 10,
@@ -22,18 +29,6 @@ target_map = {
     "OPD จุดคัดกรอง": 10, "OPD วชิระคลินิก": 10, "OPD ARI": 10, "OPD ทำแผล": 10,
     "OPD ฉีดยา": 10, "OPD เคมีบำบัด": 10, "OPD ฝากครรภ์": 10, "ศูนย์ใจรักษ์": 10
 }
-
-@st.cache_data(ttl=60)
-def load_data():
-    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
-    df = pd.read_csv(sheet_url, encoding='utf-8-sig')
-    
-    # [สำคัญมาก] โค้ดนี้จะลบตัวเลขที่ต่อท้ายชื่อหน่วยงานออกทั้งหมด
-    # ไม่ว่าจะบันทึกมาจากไหน มันจะตัดเลขออกให้เหลือแต่ชื่อภาษาไทยที่สะอาด
-    df['หน่วยงาน'] = df['หน่วยงาน'].astype(str).str.replace(r'\s*\d+$', '', regex=True).str.strip()
-    
-    perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
-    return df, perms_df
 
 st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
 
@@ -57,7 +52,7 @@ else:
         user_info = st.session_state.user_info
         access_list = str(user_info['WardAccess'])
 
-        # กำหนดตัวแปร df_filtered และ all_wards ให้ปลอดภัยนอก if-else
+        # 1. การกรองข้อมูลและกำหนดตัวเลือกหน่วยงาน
         if access_list == "ALL":
             df_filtered = df
             all_wards = ["ภาพรวมทั้งหมด"] + sorted(df['หน่วยงาน'].unique().tolist())
@@ -67,13 +62,13 @@ else:
             df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
             all_wards = ["กลุ่มงานทั้งหมด"] + sorted(allowed_wards)
 
-        # จัดการ Session State สำหรับตัวเลือก
+        # 2. เลือกหน่วยงาน
         if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
             st.session_state.selected_ward = all_wards[0]
 
         selected_ward = st.selectbox("เลือกดูข้อมูล:", all_wards, key='selected_ward')
         
-        # เตรียมข้อมูลสำหรับแสดงผล
+        # 3. เตรียมข้อมูลและเป้าหมาย
         if selected_ward == "ภาพรวมทั้งหมด":
             df_display = df_filtered
             display_target = 780
@@ -84,7 +79,7 @@ else:
             df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
             display_target = target_map.get(selected_ward, 10)
 
-        # การแสดงผล
+        # 4. ส่วนแสดงผล
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
@@ -117,4 +112,4 @@ else:
             st.rerun()
 
     except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
+        st.error(f"เกิดข้อผิดพลาด: {e}")
