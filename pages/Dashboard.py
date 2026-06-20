@@ -44,23 +44,29 @@ else:
         if access_list == "ALL":
             df_filtered = df
         else:
-            allowed_wards = [w.strip() for w in access_list.split(',')]
-            df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
+            # เลือกหน่วยงาน
+        # ปรับ logic: ถ้าไม่ใช่แอดมิน (เข้าถึงได้ไม่ทุกหน่วย) ให้เริ่มที่หน่วยงานแรกในกลุ่มของเขาเลย
+        allowed_wards = [w.strip() for w in access_list.split(',')] if access_list != "ALL" else []
         
-        # เลือกหน่วยงาน
-        if 'selected_ward' not in st.session_state:
-            st.session_state.selected_ward = "ภาพรวมทั้งหมด"
+        if access_list == "ALL":
+            all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
+        else:
+            # ถ้าเป็นหัวหน้ากลุ่ม ให้มีแค่หน่วยงานในกลุ่มเท่านั้น (ไม่มี "ภาพรวมทั้งหมด")
+            all_wards = sorted(allowed_wards)
 
-        all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
-        
+        # จัดการค่าเริ่มต้นใน session_state
+        if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
+            st.session_state.selected_ward = all_wards[0] # บังคับให้เลือกหน่วยงานแรกในกลุ่มเสมอ
+
+        # เลือกหน่วยงาน (ไม่ต้องแสดง placeholder ถ้าเป็นกลุ่มงาน)
         selected_ward = st.selectbox(
             "เลือกหน่วยงาน:", 
             all_wards,
-            key='selected_ward',
-            placeholder="พิมพ์เพื่อค้นหาหน่วยงาน..."
+            key='selected_ward'
         )
         
-        df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
+        # กรองข้อมูล
+        df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
         
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
