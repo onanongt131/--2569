@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-# ฟังก์ชันโหลดข้อมูล (รวมทุกไฟล์)
+# ฟังก์ชันโหลดข้อมูล
 @st.cache_data(ttl=60)
 def load_data():
     df = pd.read_csv("data.csv", encoding='utf-8-sig')
@@ -20,7 +20,7 @@ if "password_correct" not in st.session_state:
 if not st.session_state.password_correct:
     pwd = st.text_input("รหัสผ่านผู้บริหาร:", type="password")
     if st.button("เข้าสู่ระบบ"):
-        df, perms_df, _ = load_data()
+        _, perms_df, _ = load_data()
         user_row = perms_df[perms_df['Password'].astype(str).str.strip() == str(pwd).strip()]
         if not user_row.empty:
             st.session_state.password_correct = True
@@ -29,28 +29,31 @@ if not st.session_state.password_correct:
         else:
             st.error("รหัสผ่านไม่ถูกต้อง")
 else:
-    # --- เมื่อ Login สำเร็จ ---
-    df, perms_df, targets_df = load_data()
-    user_info = st.session_state.user_info
-    
-    # อัปเดตข้อมูล
-    if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
-        st.cache_data.clear()
-        st.rerun()
+    # เมื่อ Login สำเร็จ
+    try:
+        df, _, targets_df = load_data()
+        user_info = st.session_state.user_info
+        
+        if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
+            st.cache_data.clear()
+            st.rerun()
 
-    # กรองข้อมูลตามสิทธิ์
-    access_list = str(user_info['WardAccess'])
-    if access_list == "ALL":
-        df_filtered = df
-    else:
-        allowed_wards = [w.strip() for w in access_list.split(',')]
-        df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
-    
-    # เลือกหน่วยงาน
-    all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
-    selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards)
-    df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
-    score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
+        # กรองข้อมูลตามสิทธิ์
+        access_list = str(user_info['WardAccess'])
+        if access_list == "ALL":
+            df_filtered = df
+        else:
+            allowed_wards = [w.strip() for w in access_list.split(',')]
+            df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
+        
+        # เลือกหน่วยงาน
+        all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
+        selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards)
+        df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
+        
+        # ตัดคอลัมน์ที่ไม่ใช่ตัวเลขออก
+        score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
+
         # ส่วนที่ 1: ร้อยละตามเป้าหมาย
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
         counts = df_display['หน่วยงาน'].value_counts().reset_index()
@@ -84,7 +87,7 @@ else:
         st.download_button("ดาวน์โหลดข้อมูลนี้เป็น CSV", csv, "report.csv", "text/csv")
         
     except Exception as e:
-        st.error(f"เกิดข้อผิดพลาด: {e}")
+        st.error(f"เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
 
     if st.button("ออกจากระบบ"):
         st.session_state.password_correct = False
