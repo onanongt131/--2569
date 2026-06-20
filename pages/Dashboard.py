@@ -34,44 +34,41 @@ else:
         access_list = str(user_info['WardAccess'])
 
         # 1. กำหนดตัวแปร df_filtered ให้ปลอดภัย (ทำนอก if-else)
-        if access_list == "ALL":
-            df_filtered = df
-            all_wards = ["ภาพรวมทั้งหมด"] + sorted(df['หน่วยงาน'].unique().tolist())
-        else:
-            allowed_wards = [w.strip() for w in access_list.split(',')]
-            df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
-            all_wards = sorted(allowed_wards)
-
-        if st.button("🔄 อัปเดตข้อมูล"):
-            st.rerun()
-
-        # 2. เลือกหน่วยงาน
-        if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
-            st.session_state.selected_ward = all_wards[0]
-
-        selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards, key='selected_ward')
+        # 1. กำหนดตัวเลือก (เพิ่ม "กลุ่มงานทั้งหมด" เข้าไปสำหรับหัวหน้ากลุ่ม)
+        if access_list != "ALL":
+            all_wards = ["กลุ่มงานทั้งหมด"] + sorted(allowed_wards)
         
-        # 3. เตรียมข้อมูลแสดงผล
-        if selected_ward == "ภาพรวมทั้งหมด":
+        # 2. เลือกหน่วยงาน
+        selected_ward = st.selectbox("เลือกดูข้อมูล:", all_wards, key='selected_ward')
+        
+        # 3. เตรียมข้อมูล (df_display) และเป้าหมาย (display_target)
+        if selected_ward == "กลุ่มงานทั้งหมด":
             df_display = df_filtered
-            display_target = 780
+            # รวมเป้าหมายของทุกหน่วยงานในกลุ่ม (สมมติว่าใช้ sum ของ target_map)
+            display_target = sum([target_map.get(w, 10) for w in allowed_wards])
         else:
             df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
-            # เพิ่มหน่วยงานให้ครบใน dict นี้
-            target_map = {"อายุรกรรม 2": 15, "อายุรกรรม 4": 15, "อายุรกรรม 5": 15} 
             display_target = target_map.get(selected_ward, 10)
 
-        # 4. ส่วนแสดงผลกราฟ 3 ส่วน
-        score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
-
-        # ส่วนที่ 1
+        # 4. แสดงผลส่วนที่ 1
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
+        
+        # กราฟเปรียบเทียบรายหน่วยงาน (กรณีดู "กลุ่มงานทั้งหมด")
+        if selected_ward == "กลุ่มงานทั้งหมด":
+            counts = df_display['หน่วยงาน'].value_counts().reset_index()
+            counts.columns = ['หน่วยงาน', 'Count']
+            chart1 = alt.Chart(counts).mark_bar().encode(
+                x='หน่วยงาน', y='Count', color='หน่วยงาน'
+            )
+            st.altair_chart(chart1, use_container_width=True)
+            
+        # Metric
         total_count = int(df_display.shape[0])
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
         col1, col2, col3 = st.columns(3)
-        col1.metric("จำนวนผู้ประเมิน", f"{total_count} คน")
-        col2.metric("เป้าหมาย", f"{display_target} คน")
+        col1.metric("จำนวนรวม", f"{total_count} คน")
+        col2.metric("เป้าหมายรวม", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
 
         # ส่วนที่ 2
