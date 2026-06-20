@@ -97,24 +97,27 @@ else:
        # --- ปรับปรุงส่วนแสดงผล Metrics ---
         
         # 1. คำนวณจำนวนผู้ประเมินตามการกรองจริง
+       # --- ปรับปรุงส่วนแสดงผล Metrics ให้แม่นยำ ---
+        
+        # 1. คำนวณจำนวนผู้ประเมินตามการกรองจริงจาก df_display
         total_count = int(df_display.shape[0])
         
-        # 2. คำนวณค่าเป้าหมายตามหน่วยงานที่เลือก
+        # 2. คำนวณค่าเป้าหมาย
+        # ถ้าเลือก "ภาพรวมทั้งหมด" ให้ใช้ 780
+        # ถ้าเลือกหน่วยงานอื่น ให้ดึงจาก target_map (ถ้าหาไม่เจอให้เป็น 0)
         if selected_ward == "ภาพรวมทั้งหมด":
-            display_target = 780  # หรือค่าเป้าหมายรวมของคุณ
+            display_target = 780
         else:
-            # ดึงค่าเป้าหมายของหน่วยงานนั้นๆ จาก target_map
-            # หากเป็นกลุ่มงาน ให้ใช้ sum ของหน่วยงานทั้งหมดที่กรองมาได้
-            current_wards = df_display['หน่วยงาน'].unique()
-            display_target = sum([target_map.get(w, 0) for w in current_wards])
+            # ดึงค่าเป้าหมายเฉพาะหน่วยงานที่เลือกจาก map
+            display_target = target_map.get(selected_ward, 0)
             
-        # 3. คำนวณร้อยละ
+        # 3. คำนวณร้อยละ (ป้องกันหารด้วย 0)
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
-        # 4. แสดงผล
+        # 4. แสดงผล Metric
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนผู้ประเมิน", f"{total_count} คน")
-        col2.metric("เป้าหมายหน่วยงาน", f"{display_target} คน")
+        col2.metric("เป้าหมาย", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
         
         st.write("---")
