@@ -113,22 +113,27 @@ else:
         )
         st.altair_chart(chart1, use_container_width=True)
         
-        # แสดง Metrics สรุปผล
-       # --- แทนที่ส่วนแสดง Metrics เดิมด้วยส่วนนี้ ---
+        # --- ส่วนแสดง Metrics ที่ปรับปรุงให้รวมเป้าหมายเฉพาะหน่วยงานใน Group ---
         
-        # คำนวณค่าเฉพาะหน่วยงานที่เลือก
-        if selected_ward == "ภาพรวมทั้งหมด":
-            current_target = 780
-        else:
-            # ดึงค่าเป้าหมายจาก target_map โดยตรงตามชื่อหน่วยงานที่เลือก
-            current_target = target_map.get(selected_ward, 1)
-
+        # 1. ดึงรายการหน่วยงานทั้งหมดที่กำลังแสดงผลอยู่ในขณะนี้
+        current_wards = df_display['หน่วยงาน'].unique()
+        
+        # 2. รวมเป้าหมายเฉพาะหน่วยงานเหล่านั้นจาก target_map
+        # ใช้ .get(ward, 0) เพื่อป้องกัน Error กรณีหาชื่อหน่วยงานไม่เจอ
+        current_total_target = sum([target_map.get(ward, 0) for ward in current_wards])
+        
+        # 3. คำนวณค่าจากยอดรวมที่กรองแล้ว
         total_count = int(counts['Count'].sum())
-        total_percent = (total_count / current_target * 100) if current_target > 0 else 0
+        total_percent = (total_count / current_total_target * 100) if current_total_target > 0 else 0
         
+        # 4. แสดงผล
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนผู้ประเมิน", f"{total_count} คน")
-        col2.metric("เป้าหมายหน่วยงาน", f"{current_target} คน")
+        
+        # ถ้าเป็นภาพรวมทั้งหมด ให้แสดง 780 แต่ถ้าเลือก Group ให้แสดงผลรวมของ Group นั้น
+        display_target = 780 if selected_ward == "ภาพรวมทั้งหมด" else current_total_target
+        col2.metric("เป้าหมาย", f"{display_target} คน")
+        
         col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
         
         st.write("---") # เส้นคั่นก่อนขึ้นส่วนที่ 2
