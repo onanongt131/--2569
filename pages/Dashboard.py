@@ -10,9 +10,16 @@ def load_data():
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
     return df, perms_df
 
+# ตารางเป้าหมาย (นำมาวางไว้ตรงนี้เพื่อให้เรียกใช้ได้ทุกจุด)
+target_map = {
+    "กุมารเวชกรรม 1": 10, "กุมารเวชกรรม 2": 10, "งานเวชศาสตร์ใต้น้ำ": 5, "งานไตเทียม HD/CAPD": 10,
+    "ศัลยกรรมกระดูก": 15, "ศัลยกรรมชาย": 15, "ศัลยกรรมประสาท": 15, "ศัลยกรรมหญิง": 15,
+    "อายุรกรรม 2": 15, "อายุรกรรม 3": 15, "อายุรกรรม 4": 15, "อายุรกรรม 5": 15
+    # ... ใส่หน่วยงานอื่นๆ ของคุณให้ครบที่นี่
+}
+
 st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
 
-# ระบบ Login
 if "password_correct" not in st.session_state:
     st.session_state.password_correct = False
 
@@ -33,36 +40,43 @@ else:
         user_info = st.session_state.user_info
         access_list = str(user_info['WardAccess'])
 
-        # 1. กำหนดตัวแปร df_filtered ให้ปลอดภัย (ทำนอก if-else)
-        # 1. กำหนดตัวเลือก (เพิ่ม "กลุ่มงานทั้งหมด" เข้าไปสำหรับหัวหน้ากลุ่ม)
-        if access_list != "ALL":
+        # 1. การกรองข้อมูลและกำหนดตัวเลือกหน่วยงาน
+        if access_list == "ALL":
+            df_filtered = df
+            all_wards = ["ภาพรวมทั้งหมด"] + sorted(df['หน่วยงาน'].unique().tolist())
+            allowed_wards = df['หน่วยงาน'].unique().tolist()
+        else:
+            allowed_wards = [w.strip() for w in access_list.split(',')]
+            df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
             all_wards = ["กลุ่มงานทั้งหมด"] + sorted(allowed_wards)
-        
+
         # 2. เลือกหน่วยงาน
+        if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
+            st.session_state.selected_ward = all_wards[0]
+
         selected_ward = st.selectbox("เลือกดูข้อมูล:", all_wards, key='selected_ward')
         
-        # 3. เตรียมข้อมูล (df_display) และเป้าหมาย (display_target)
-        if selected_ward == "กลุ่มงานทั้งหมด":
+        # 3. เตรียมข้อมูลและเป้าหมาย
+        if selected_ward == "ภาพรวมทั้งหมด":
             df_display = df_filtered
-            # รวมเป้าหมายของทุกหน่วยงานในกลุ่ม (สมมติว่าใช้ sum ของ target_map)
+            display_target = 780
+        elif selected_ward == "กลุ่มงานทั้งหมด":
+            df_display = df_filtered
             display_target = sum([target_map.get(w, 10) for w in allowed_wards])
         else:
             df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
             display_target = target_map.get(selected_ward, 10)
 
-        # 4. แสดงผลส่วนที่ 1
+        # 4. ส่วนแสดงผล
+        score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
+
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-        
-        # กราฟเปรียบเทียบรายหน่วยงาน (กรณีดู "กลุ่มงานทั้งหมด")
-        if selected_ward == "กลุ่มงานทั้งหมด":
+        if selected_ward in ["ภาพรวมทั้งหมด", "กลุ่มงานทั้งหมด"]:
             counts = df_display['หน่วยงาน'].value_counts().reset_index()
             counts.columns = ['หน่วยงาน', 'Count']
-            chart1 = alt.Chart(counts).mark_bar().encode(
-                x='หน่วยงาน', y='Count', color='หน่วยงาน'
-            )
+            chart1 = alt.Chart(counts).mark_bar().encode(x='หน่วยงาน', y='Count', color='หน่วยงาน')
             st.altair_chart(chart1, use_container_width=True)
             
-        # Metric
         total_count = int(df_display.shape[0])
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
@@ -71,14 +85,12 @@ else:
         col2.metric("เป้าหมายรวม", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
 
-        # ส่วนที่ 2
         st.subheader("ส่วนที่ 2: ผลการประเมินภาพรวม")
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
         chart2 = alt.Chart(avg_data).mark_bar().encode(x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), y='หัวข้อ')
         st.altair_chart(chart2, use_container_width=True)
 
-        # ส่วนที่ 3
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         st.dataframe(stats, use_container_width=True)
@@ -88,4 +100,4 @@ else:
             st.rerun()
 
     except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
+        st.error(f"เกิดข้อผิดพลาด: {e}")
