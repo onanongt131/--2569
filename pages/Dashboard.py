@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
+import time
 
 # ฟังก์ชันโหลดข้อมูล
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=1) # ตั้ง ttl=1 (1 วินาที) เพื่อให้ cache หมดอายุเร็วมาก
 def load_data():
+    # เพิ่มการอ่านไฟล์พร้อมระบุการเข้ารหัสให้ชัดเจน
     df = pd.read_csv("data.csv", encoding='utf-8-sig')
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
     targets_df = pd.read_csv("targets.csv", encoding='utf-8-sig')
