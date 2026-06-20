@@ -5,12 +5,13 @@ import altair as alt
 import time
 
 # ฟังก์ชันโหลดข้อมูล
-@st.cache_data(ttl=1) # ตั้ง ttl=1 (1 วินาที) เพื่อให้ cache หมดอายุเร็วมาก
+@st.cache_data(ttl=60) # ยังเก็บไว้เพื่อไม่ให้โหลดซ้ำจนหนักเกินไป
 def load_data():
-    # เพิ่มการอ่านไฟล์พร้อมระบุการเข้ารหัสให้ชัดเจน
-    df = pd.read_csv("data.csv", encoding='utf-8-sig')
-    perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
-    targets_df = pd.read_csv("targets.csv", encoding='utf-8-sig')
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    # อ่านไฟล์ใหม่เสมอ
+    df = pd.read_csv(os.path.join(base_dir, "data.csv"), encoding='utf-8-sig')
+    perms_df = pd.read_csv(os.path.join(base_dir, "permissions.csv"), encoding='utf-8-sig')
+    targets_df = pd.read_csv(os.path.join(base_dir, "targets.csv"), encoding='utf-8-sig')
     return df, perms_df, targets_df
 
 st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
