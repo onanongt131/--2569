@@ -27,8 +27,11 @@ target_map = {
 def load_data():
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
     df = pd.read_csv(sheet_url, encoding='utf-8-sig')
-    # ตัดตัวเลขท้ายชื่อหน่วยงานออก
+    
+    # [สำคัญมาก] โค้ดนี้จะลบตัวเลขที่ต่อท้ายชื่อหน่วยงานออกทั้งหมด
+    # ไม่ว่าจะบันทึกมาจากไหน มันจะตัดเลขออกให้เหลือแต่ชื่อภาษาไทยที่สะอาด
     df['หน่วยงาน'] = df['หน่วยงาน'].astype(str).str.replace(r'\s*\d+$', '', regex=True).str.strip()
+    
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
     return df, perms_df
 
