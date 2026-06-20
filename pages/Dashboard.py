@@ -8,6 +8,9 @@ def load_data():
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
     df = pd.read_csv(sheet_url, encoding='utf-8-sig')
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
+    # เพิ่มโค้ดนี้หลังโหลด df จาก Google Sheets
+    # ใช้ regex เพื่อตัดตัวเลขท้ายชื่อหน่วยงานออก (สมมติว่าตัวเลขอยู่ท้ายชื่อ)
+    df['หน่วยงาน'] = df['หน่วยงาน'].astype(str).str.replace(r'\s*\d+$', '', regex=True).str.strip()
     return df, perms_df
 
 # ตารางเป้าหมาย (นำมาวางไว้ตรงนี้เพื่อให้เรียกใช้ได้ทุกจุด)
