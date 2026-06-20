@@ -35,7 +35,7 @@ ER/ศูนย์ refer	35
 ICCU	10
 MICU	10
 NICU	10
-OPD	200
+OPD	10
 ศูนย์ ODS&MIS	10
 ห้องผ่าตัด	20
 PICU	5
@@ -48,25 +48,25 @@ Wound care	6
 Echo	6
 OPD จิตเวช	10
 เคมีบำบัด	7
-OPD นรีเวช	
-OPD ศัลยกรรม	
-OPD กระดูก	
-OPD อายุรกรรม	
-OPD เบาหวาน	
-OPD งานเอดส์	
-OPDให้คำปรึกษา	
-OPD วัณโรค	
-OPD กุมารเวช	
-OPDAdmit+refer	
-OPD WCC	
-OPD ENT	
-OPD ตา	
-OPD Admit	
-OPD จุดคัดกรอง	
-OPD วชิระคลินิก	
-OPD ARI	
-OPD ทำแผล	
-OPD ฉีดยา	
-OPD เคมีบำบัด	
-OPD ฝากครรภ์	
-ศููนย์ใจรักษ์	
+OPD นรีเวช	10
+OPD ศัลยกรรม	10
+OPD กระดูก	10
+OPD อายุรกรรม	10
+OPD เบาหวาน	10
+OPD งานเอดส์	10
+OPDให้คำปรึกษา	10
+OPD วัณโรค	10
+OPD กุมารเวช	10
+OPDAdmit+refer	10
+OPD WCC	10
+OPD ENT	10
+OPD ตา	10
+OPD Admit	10
+OPD จุดคัดกรอง	10
+OPD วชิระคลินิก	10
+OPD ARI	10
+OPD ทำแผล	10
+OPD ฉีดยา	10
+OPD เคมีบำบัด	10
+OPD ฝากครรภ์	10
+ศููนย์ใจรักษ์	10
