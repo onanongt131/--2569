@@ -115,25 +115,25 @@ else:
         
         # --- ส่วนแสดง Metrics ที่ปรับปรุงให้รวมเป้าหมายเฉพาะหน่วยงานใน Group ---
         
-        # 1. ดึงรายการหน่วยงานทั้งหมดที่กำลังแสดงผลอยู่ในขณะนี้
-        current_wards = df_display['หน่วยงาน'].unique()
+        # --- ส่วนแสดง Metrics ที่ปรับปรุง ---
         
-        # 2. รวมเป้าหมายเฉพาะหน่วยงานเหล่านั้นจาก target_map
-        # ใช้ .get(ward, 0) เพื่อป้องกัน Error กรณีหาชื่อหน่วยงานไม่เจอ
-        current_total_target = sum([target_map.get(ward, 0) for ward in current_wards])
-        
-        # 3. คำนวณค่าจากยอดรวมที่กรองแล้ว
+        # 1. คำนวณจำนวนผู้ประเมินตามการกรองจริง
         total_count = int(counts['Count'].sum())
-        total_percent = (total_count / current_total_target * 100) if current_total_target > 0 else 0
+        
+        # 2. คำนวณเป้าหมายตามการเลือก
+        if selected_ward == "ภาพรวมทั้งหมด":
+            display_target = 780
+        else:
+            # ดึงเป้าหมายจาก target_map เฉพาะหน่วยงานที่เลือก
+            display_target = target_map.get(selected_ward, 0)
+            
+        # 3. คำนวณร้อยละ (ต้องเช็คไม่ให้หารด้วย 0)
+        total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
         # 4. แสดงผล
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนผู้ประเมิน", f"{total_count} คน")
-        
-        # ถ้าเป็นภาพรวมทั้งหมด ให้แสดง 780 แต่ถ้าเลือก Group ให้แสดงผลรวมของ Group นั้น
-        display_target = 780 if selected_ward == "ภาพรวมทั้งหมด" else current_total_target
         col2.metric("เป้าหมาย", f"{display_target} คน")
-        
         col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
         
         st.write("---") # เส้นคั่นก่อนขึ้นส่วนที่ 2
