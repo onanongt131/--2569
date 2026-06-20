@@ -110,6 +110,7 @@ else:
         
         st.write("---")
         
+        
         # ส่วนที่ 2 และ 3
         st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
