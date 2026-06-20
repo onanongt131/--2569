@@ -2,51 +2,55 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-import time
 
-st.set_page_config(page_title="แบบประเมินพฤติกรรม", page_icon="📊", layout="wide")
-
+# ฟังก์ชันโหลดข้อมูล (รวมทุกไฟล์)
 @st.cache_data(ttl=60)
-def load_data(url):
-    # เพิ่ม timestamp เพื่อป้องกัน Cache ของ Google Sheets
-    return pd.read_csv(f"{url}&t={time.time()}")
+def load_data():
+    df = pd.read_csv("data.csv", encoding='utf-8-sig')
+    perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
+    targets_df = pd.read_csv("targets.csv", encoding='utf-8-sig')
+    return df, perms_df, targets_df
 
-# ระบบล็อกอิน
-def check_password():
-    if "password_correct" not in st.session_state:
-        st.session_state.password_correct = False
-    if not st.session_state.password_correct:
-        pwd = st.text_input("รหัสผ่านสำหรับผู้บริหาร:", type="password")
-        if pwd == "Admin1234":
+st.title("📊 Dashboard สรุปผลสำหรับผู้บริหาร")
+
+# ระบบตรวจสอบสิทธิ์
+if "password_correct" not in st.session_state:
+    st.session_state.password_correct = False
+
+if not st.session_state.password_correct:
+    pwd = st.text_input("รหัสผ่านผู้บริหาร:", type="password")
+    if st.button("เข้าสู่ระบบ"):
+        df, perms_df, _ = load_data()
+        user_row = perms_df[perms_df['Password'].astype(str).str.strip() == str(pwd).strip()]
+        if not user_row.empty:
             st.session_state.password_correct = True
+            st.session_state.user_info = user_row.iloc[0]
             st.rerun()
-        return False
-    return True
-
-if check_password():
-    st.title("📊 แบบประเมินพฤติกรรมบริการพยาบาล")
+        else:
+            st.error("รหัสผ่านไม่ถูกต้อง")
+else:
+    # --- เมื่อ Login สำเร็จ ---
+    df, perms_df, targets_df = load_data()
+    user_info = st.session_state.user_info
     
-    sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
+    # อัปเดตข้อมูล
+    if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
+        st.cache_data.clear()
+        st.rerun()
+
+    # กรองข้อมูลตามสิทธิ์
+    access_list = str(user_info['WardAccess'])
+    if access_list == "ALL":
+        df_filtered = df
+    else:
+        allowed_wards = [w.strip() for w in access_list.split(',')]
+        df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
     
-    try:
-        df = load_data(sheet_url)
-        
-        if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
-            st.cache_data.clear()
-            st.rerun()
-
-        # สร้างข้อมูลสมมติสำหรับ Target (ถ้าไม่มีไฟล์เป้าหมาย ให้ใช้ Target = 10 ทุกหน่วยงาน)
-        wards = df['หน่วยงาน'].unique()
-        targets_df = pd.DataFrame({'หน่วยงาน': wards, 'Target': 10}) 
-
-        # ตัวเลือกหน่วยงาน
-        all_wards = ["ภาพรวมทั้งหมด"] + sorted(wards.tolist())
-        selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards)
-        df_display = df if selected_ward == "ภาพรวมทั้งหมด" else df[df['หน่วยงาน'] == selected_ward]
-
-        # เลือกเฉพาะคอลัมน์ที่เป็นตัวเลข (คะแนน)
-        score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
-
+    # เลือกหน่วยงาน
+    all_wards = ["ภาพรวมทั้งหมด"] + sorted(df_filtered['หน่วยงาน'].unique().tolist())
+    selected_ward = st.selectbox("เลือกหน่วยงาน:", all_wards)
+    df_display = df_filtered if selected_ward == "ภาพรวมทั้งหมด" else df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
+    score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
         # ส่วนที่ 1: ร้อยละตามเป้าหมาย
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
         counts = df_display['หน่วยงาน'].value_counts().reset_index()
@@ -81,3 +85,7 @@ if check_password():
         
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาด: {e}")
+
+    if st.button("ออกจากระบบ"):
+        st.session_state.password_correct = False
+        st.rerun()
