@@ -64,23 +64,44 @@ else:
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
         # ส่วนที่ 1
+        # ส่วนที่ 1: ร้อยละตามเป้าหมาย
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน (เทียบตามเป้าหมาย)")
+        
+        target_map = {
+            "กุมารเวชกรรม 1": 10, "กุมารเวชกรรม 2": 10, "งานเวชศาสตร์ใต้น้ำ": 5, "งานไตเทียม HD/CAPD": 10,
+            "น้อมเกล้า 2": 10, "น้อมเกล้า 3": 10, "น้อมเกล้า 4": 10, "นรีเวชกรรม": 10,
+            "พิเศษอายุรกรรม 5": 10, "พิเศษอายุรกรรม 7": 10, "รติพัฒน์": 10, "รส.200 ปี บน": 10,
+            "รส. 200 ปี ล่าง": 10, "หลวงพ่อแช่มชั้น 2": 10, "หลวงพ่อแช่มชั้น 3": 10, "ศัลยกรรมกระดูก": 15,
+            "ศัลยกรรมชาย": 15, "ศัลยกรรมประสาท": 15, "ศัลยกรรมหญิง": 15, "หลวงพ่อแช่มชั้น 4": 10,
+            "หลังคลอด": 15, "ห้องคลอด": 10, "อายุรกรรม 4": 15, "อายุรกรรม 2": 15,
+            "อายุรกรรม 3": 15, "อายุรกรรม 5": 15, "อายุรกรรม 6": 15, "อายุรกรรม 7": 15,
+            "วิสัญญี": 20, "CCU": 8, "Cath lab": 6, "Intervention": 7, "EENT": 10, "ER/ศูนย์ refer": 35,
+            "ICCU": 10, "MICU": 10, "NICU": 10, "OPD": 10, "ศูนย์ ODS&MIS": 10, "ห้องผ่าตัด": 20,
+            "PICU": 5, "Sick newborn": 10, "SICU": 5, "Stroke unit": 5, "RCU": 10, "สงฆ์อาพาธ": 10,
+            "Wound care": 6, "Echo": 6, "OPD จิตเวช": 10, "เคมีบำบัด": 7, "OPD นรีเวช": 10,
+            "OPD ศัลยกรรม": 10, "OPD กระดูก": 10, "OPD อายุรกรรม": 10, "OPD เบาหวาน": 10,
+            "OPD งานเอดส์": 10, "OPDให้คำปรึกษา": 10, "OPD วัณโรค": 10, "OPD กุมารเวช": 10,
+            "OPDAdmit+refer": 10, "OPD WCC": 10, "OPD ENT": 10, "OPD ตา": 10, "OPD Admit": 10,
+            "OPD จุดคัดกรอง": 10, "OPD วชิระคลินิก": 10, "OPD ARI": 10, "OPD ทำแผล": 10,
+            "OPD ฉีดยา": 10, "OPD เคมีบำบัด": 10, "OPD ฝากครรภ์": 10, "ศููนย์ใจรักษ์": 10
+        }
+
         counts = df_display['หน่วยงาน'].value_counts().reset_index()
         counts.columns = ['หน่วยงาน', 'Count']
-        progress_df = pd.merge(counts, targets_df, on='หน่วยงาน', how='left').fillna({'Target': 10})
-        progress_df['Percent'] = (progress_df['Count'] / progress_df['Target'] * 100).clip(upper=100)
-        chart1 = alt.Chart(progress_df).mark_bar().encode(x='หน่วยงาน', y=alt.Y('Percent', scale=alt.Scale(domain=[0, 100])))
-        st.altair_chart(chart1, use_container_width=True)
-
-        # สรุปจำนวนผู้ประเมิน vs เป้าหมาย (ต่อท้ายจากกราฟส่วนที่ 1)
-        st.write("---") # เส้นคั่น
         
-        # คำนวณยอดรวมจาก progress_df (ที่สร้างไว้แล้วในส่วนที่ 1)
-        total_count = int(progress_df['Count'].sum())
-        total_target = int(progress_df['Target'].sum())
-        total_percent = (total_count / total_target * 100) if total_target > 0 else 0
-
-        # แสดงผลแบบ Metrics
+        counts['Target'] = counts['หน่วยงาน'].map(target_map).fillna(1)
+        counts['Percent'] = (counts['Count'] / counts['Target'] * 100).clip(upper=100)
+        
+        chart1 = alt.Chart(counts).mark_bar().encode(
+            x='หน่วยงาน', y=alt.Y('Percent', scale=alt.Scale(domain=[0, 100]))
+        )
+        st.altair_chart(chart1, use_container_width=True)
+        
+        # แสดง Metrics สรุปผล
+        total_count = int(counts['Count'].sum())
+        total_target = 780 
+        total_percent = (total_count / total_target * 100)
+        
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนผู้ประเมินทั้งหมด", f"{total_count} คน")
         col2.metric("เป้าหมายทั้งหมด", f"{total_target} คน")
