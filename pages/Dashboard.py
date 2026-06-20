@@ -6,13 +6,20 @@ import altair as alt
 
 st.set_page_config(layout="wide")
 
-@st.cache_data(ttl=60)
+# แทนที่ฟังก์ชัน load_data เดิมด้วยโค้ดนี้
+@st.cache_data(ttl=60) # ยังเก็บไว้เพื่อไม่ให้โหลดซ้ำจนหนักเกินไป
 def load_data():
     base_dir = os.path.dirname(os.path.dirname(__file__))
+    # อ่านไฟล์ใหม่เสมอ
     df = pd.read_csv(os.path.join(base_dir, "data.csv"), encoding='utf-8-sig')
     perms_df = pd.read_csv(os.path.join(base_dir, "permissions.csv"), encoding='utf-8-sig')
     targets_df = pd.read_csv(os.path.join(base_dir, "targets.csv"), encoding='utf-8-sig')
     return df, perms_df, targets_df
+
+# เพิ่มปุ่มโหลดข้อมูลใหม่ใน Sidebar
+if st.sidebar.button("อัปเดตข้อมูลล่าสุด"):
+    st.cache_data.clear() # ล้าง Cache ทั้งหมด
+    st.rerun() # สั่งรันหน้าเว็บใหม่
 
 st.title("📊 Dashboard สรุปผลการประเมินพยาบาล")
 
