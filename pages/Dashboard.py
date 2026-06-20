@@ -72,6 +72,22 @@ else:
         chart1 = alt.Chart(progress_df).mark_bar().encode(x='หน่วยงาน', y=alt.Y('Percent', scale=alt.Scale(domain=[0, 100])))
         st.altair_chart(chart1, use_container_width=True)
 
+        # สรุปจำนวนผู้ประเมิน vs เป้าหมาย (ต่อท้ายจากกราฟส่วนที่ 1)
+        st.write("---") # เส้นคั่น
+        
+        # คำนวณยอดรวมจาก progress_df (ที่สร้างไว้แล้วในส่วนที่ 1)
+        total_count = int(progress_df['Count'].sum())
+        total_target = int(progress_df['Target'].sum())
+        total_percent = (total_count / total_target * 100) if total_target > 0 else 0
+
+        # แสดงผลแบบ Metrics
+        col1, col2, col3 = st.columns(3)
+        col1.metric("จำนวนผู้ประเมินทั้งหมด", f"{total_count} คน")
+        col2.metric("เป้าหมายทั้งหมด", f"{total_target} คน")
+        col3.metric("ร้อยละความสำเร็จรวม", f"{total_percent:.1f}%")
+        
+        st.write("---") # เส้นคั่นก่อนขึ้นส่วนที่ 2
+        
         # ส่วนที่ 2
         st.subheader("ส่วนที่ 2: ร้อยละผลการประเมินภาพรวม")
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
