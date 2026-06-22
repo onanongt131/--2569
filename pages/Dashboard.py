@@ -123,9 +123,9 @@ else:
         col2.metric("เป้าหมายรวม", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ (รวม)", f"{total_percent:.1f}%")
 
-        st.subheader("ส่วนที่ 2: ผลการประเมินภาพรวม")
+        st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
         
-        # 1. แสดงกราฟแท่งคะแนนเฉลี่ยรายข้อ (เหมือนเดิม)
+        # 1. กราฟแท่งคะแนนเฉลี่ยรายข้อ (ยังคงเดิม)
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
         chart2 = alt.Chart(avg_data).mark_bar().encode(
@@ -134,26 +134,39 @@ else:
         )
         st.altair_chart(chart2, use_container_width=True)
 
-        # 2. แสดงคะแนนรวมเฉลี่ย และร้อยละเฉลี่ย ของผู้ที่ Login
-        st.subheader("ส่วนที่ 2.1: สรุปผลการประเมินส่วนบุคคล")
+        # 2. คำนวณคะแนนเฉลี่ยรวม 20 ข้อ (ของแต่ละแถว/ผู้ประเมินแต่ละคน)
+        df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
         
-        # สมมติว่าใน DataFrame มีคอลัมน์ที่ระบุตัวตนคือ 'ผู้ประเมิน'
-        # โปรดตรวจสอบว่าใน df ของคุณชื่อคอลัมน์คืออะไร (ถ้าไม่ใช่ 'ผู้ประเมิน' ให้เปลี่ยนชื่อครับ)
-        current_user = user_info.get('Name') 
-        user_df = df_display[df_display['ผู้ประเมิน'] == current_user]
-        
-        if not user_df.empty:
-            # คำนวณคะแนนเฉลี่ยจากทุกข้อ (คะแนนรวม 20 ข้อ)
-            user_mean_score = user_df[score_cols].mean().mean()
-            # คำนวณเป็นร้อยละ
-            user_percent = (user_mean_score / 5 * 100)
-            
-            col_a, col_b = st.columns(2)
-            col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{user_mean_score:.2f} / 5.00")
-            col_b.metric("ร้อยละเฉลี่ยของผู้ประเมิน", f"{user_percent:.1f}%")
-        else:
-            st.warning(f"ไม่พบประวัติการประเมินของคุณ ({current_user}) ในหน่วยงานที่เลือก")
+        # 3. จัดกลุ่มระดับความพึงพอใจ
+        def classify_score(s):
+            if s >= 4.21: return "ดีมาก"
+            elif s >= 3.41: return "ดี"
+            elif s >= 2.61: return "ปานกลาง"
+            elif s >= 1.81: return "น้อย"
+            else: return "ควรปรับปรุง"
 
+        df_display['Level'] = df_display['Mean_Score'].apply(classify_score)
+        
+        # 4. คำนวณสรุปผล
+        overall_avg = df_display['Mean_Score'].mean()
+        
+        # นับจำนวนคนที่ได้ระดับ "ดีขึ้นไป" (ดีมาก + ดี)
+        good_levels = ["ดีมาก", "ดี"]
+        count_good = df_display[df_display['Level'].isin(good_levels)].shape[0]
+        total_people = df_display.shape[0]
+        percent_good = (count_good / total_people * 100) if total_people > 0 else 0
+
+        # 5. แสดงผลสรุป
+        col_a, col_b = st.columns(2)
+        col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{overall_avg:.2f} / 5.00")
+        col_b.metric("ร้อยละระดับดีขึ้นไป", f"{percent_good:.1f}%")
+
+        # เพิ่มตารางสรุปสถิติด้านล่าง
+        st.write("---")
+        st.write("**สถิติระดับความพึงพอใจ:**")
+        level_counts = df_display['Level'].value_counts().reset_index()
+        level_counts.columns = ['ระดับความพึงพอใจ', 'จำนวน (คน)']
+        st.table(level_counts)
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         st.dataframe(stats, use_container_width=True)
