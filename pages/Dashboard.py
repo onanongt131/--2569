@@ -207,10 +207,6 @@ else:
         col1.metric("จุดแข็งที่สุด (คะแนนสูงสุด)", f"{best_score:.2f} / 5.00", best_col)
         col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
             
-        # ใส่คำอธิบายเพิ่มเติมเล็กน้อย
-        st.caption(f"📈 จุดแข็ง: {best_col}")
-        st.caption(f"📉 ควรพัฒนา: {worst_col}")
-            
         st.divider()
 
     except Exception as e:
