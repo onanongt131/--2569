@@ -124,10 +124,35 @@ else:
         col3.metric("ร้อยละความสำเร็จ (รวม)", f"{total_percent:.1f}%")
 
         st.subheader("ส่วนที่ 2: ผลการประเมินภาพรวม")
+        
+        # 1. แสดงกราฟแท่งคะแนนเฉลี่ยรายข้อ (เหมือนเดิม)
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
-        chart2 = alt.Chart(avg_data).mark_bar().encode(x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), y='หัวข้อ')
+        chart2 = alt.Chart(avg_data).mark_bar().encode(
+            x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), 
+            y='หัวข้อ'
+        )
         st.altair_chart(chart2, use_container_width=True)
+
+        # 2. แสดงคะแนนรวมเฉลี่ย และร้อยละเฉลี่ย ของผู้ที่ Login
+        st.subheader("ส่วนที่ 2.1: สรุปผลการประเมินส่วนบุคคล")
+        
+        # สมมติว่าใน DataFrame มีคอลัมน์ที่ระบุตัวตนคือ 'ผู้ประเมิน'
+        # โปรดตรวจสอบว่าใน df ของคุณชื่อคอลัมน์คืออะไร (ถ้าไม่ใช่ 'ผู้ประเมิน' ให้เปลี่ยนชื่อครับ)
+        current_user = user_info.get('Name') 
+        user_df = df_display[df_display['ผู้ประเมิน'] == current_user]
+        
+        if not user_df.empty:
+            # คำนวณคะแนนเฉลี่ยจากทุกข้อ (คะแนนรวม 20 ข้อ)
+            user_mean_score = user_df[score_cols].mean().mean()
+            # คำนวณเป็นร้อยละ
+            user_percent = (user_mean_score / 5 * 100)
+            
+            col_a, col_b = st.columns(2)
+            col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{user_mean_score:.2f} / 5.00")
+            col_b.metric("ร้อยละเฉลี่ยของผู้ประเมิน", f"{user_percent:.1f}%")
+        else:
+            st.warning(f"ไม่พบประวัติการประเมินของคุณ ({current_user}) ในหน่วยงานที่เลือก")
 
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
