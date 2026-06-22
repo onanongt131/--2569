@@ -197,9 +197,17 @@ else:
 
         # แสดงตารางความพึงพอใจที่เรียงลำดับแล้ว
         st.write("**สถิติระดับความพึงพอใจ:**")
+        # 3. สรุปผลและเรียงลำดับตาราง
         level_counts = df_display['Level'].value_counts().sort_index().reset_index()
         level_counts.columns = ['Level', 'Count']
-        st.table(level_counts)
+        
+        # --- เพิ่มคำสั่งซ่อนค่า 0 ตรงนี้ ---
+        # เปลี่ยน 0 เป็น NaN แล้วลบแถวที่มี NaN ออก
+        display_table = level_counts[level_counts['Count'] > 0]
+        
+        # 4. แสดงผล
+        st.write("**สถิติระดับความพึงพอใจ:**")
+        st.table(display_table)
         
         st.divider()
 
