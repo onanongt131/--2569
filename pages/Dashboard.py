@@ -149,26 +149,28 @@ else:
         col3.metric("ร้อยละความสำเร็จ (รวม)", f"{total_percent:.1f}%")
         
         st.divider()
+        
         # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
         
-        # คำนวณคะแนนเฉลี่ย
+        # คำนวณคะแนนเฉลี่ยรายข้อสำหรับกราฟ
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
         
         # ปรับการแสดงผลกราฟ
         chart2 = alt.Chart(avg_data).mark_bar().encode(
             x=alt.X('Score', title='คะแนนเฉลี่ย (%)', scale=alt.Scale(domain=[0, 100])),
-            # ปรับให้หัวข้อ (แกน Y) มีพื้นที่มากขึ้น และจัดตำแหน่งให้เห็นชัด
             y=alt.Y('หัวข้อ', title=None, axis=alt.Axis(labelLimit=400, labelFontSize=14)),
-            color=alt.value('#2980b9') # ใช้สีน้ำเงินให้เป็นโทนเดียวกับส่วนที่ 1
+            color=alt.value('#2980b9') 
         ).properties(
-            height=600,  # ปรับความสูงกราฟรวม (ถ้าต้องการให้สั้นลง ให้ลดค่านี้)
-            width=800    # ปรับความกว้างกราฟ
+            height=600, 
+            width=800
         )
         st.altair_chart(chart2, use_container_width=True)
 
+        # คำนวณคะแนนเฉลี่ยรายบุคคลเพื่อจัดระดับ
         df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
+        
         def classify_score(s):
             if s >= 4.21: return "ดีมาก"
             elif s >= 3.41: return "ดี"
@@ -176,18 +178,27 @@ else:
             elif s >= 1.81: return "น้อย"
             else: return "ควรปรับปรุง"
 
-        # 1. นิยามลำดับที่ต้องการ
-        score_order = ["ดีมาก", "ดี", "ปานกลาง", "น้อย", "ควรปรับปรุง"]
+        # จัดกลุ่มระดับความพึงพอใจ
+        df_display['Level'] = df_display['Mean_Score'].apply(classify_score)
         
-        # 2. แปลงคอลัมน์ Level ให้เป็น Categorical ตามลำดับที่ตั้งไว้
+        # ตั้งค่าลำดับเพื่อใช้ในการแสดงผล
+        score_order = ["ดีมาก", "ดี", "ปานกลาง", "น้อย", "ควรปรับปรุง"]
         df_display['Level'] = pd.Categorical(df_display['Level'], categories=score_order, ordered=True)
         
-        # 3. สรุปผลและเรียงลำดับตาราง
+        # สรุปภาพรวมสำหรับ Metric
+        overall_avg = df_display['Mean_Score'].mean()
+        count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
+        percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
+
+        # แสดง Metric สรุป
+        col_a, col_b = st.columns(2)
+        col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{overall_avg:.2f} / 5.00")
+        col_b.metric("ร้อยละระดับดีขึ้นไป", f"{percent_good:.1f}%")
+
+        # แสดงตารางความพึงพอใจที่เรียงลำดับแล้ว
+        st.write("**สถิติระดับความพึงพอใจ:**")
         level_counts = df_display['Level'].value_counts().sort_index().reset_index()
         level_counts.columns = ['Level', 'Count']
-        
-        # 4. แสดงผล
-        st.write("**สถิติระดับความพึงพอใจ:**")
         st.table(level_counts)
         
         st.divider()
