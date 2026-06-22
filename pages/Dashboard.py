@@ -131,6 +131,7 @@ else:
         st.divider()
         
         # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
+        # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
         col_graph, col_summary = st.columns([0.7, 0.3])
 
@@ -165,8 +166,13 @@ else:
             percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
             
             st.metric(
+                label="คะแนนเฉลี่ยรวม", 
+                value=f"{overall_avg:.2f} / 5.00"
+            )
+            
+            st.metric(
                 label="ระดับดีขึ้นไป", 
-                value=f"{count_good} / {total_people} คน", 
+                value=f"{count_good} / {df_display.shape[0]} คน", 
                 delta=f"{percent_good:.1f}%"
             )
 
