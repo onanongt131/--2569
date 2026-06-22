@@ -190,28 +190,28 @@ else:
             st.rerun()
     
         # --- ส่วนที่ 4: สรุปจุดแข็งและจุดที่ควรปรับปรุง ---
-            st.subheader("ส่วนที่ 4: วิเคราะห์จุดแข็งและจุดที่ต้องปรับปรุง")
+        st.subheader("ส่วนที่ 4: วิเคราะห์จุดแข็งและจุดที่ต้องปรับปรุง")
             
-            # คำนวณคะแนนเฉลี่ยรายข้อ
-            mean_scores = df_display[score_cols].mean()
+        # คำนวณคะแนนเฉลี่ยรายข้อ
+        mean_scores = df_display[score_cols].mean()
             
-            # หาข้อที่คะแนนสูงที่สุดและต่ำที่สุด
-            best_col = mean_scores.idxmax()
-            worst_col = mean_scores.idxmin()
+        # หาข้อที่คะแนนสูงที่สุดและต่ำที่สุด
+        best_col = mean_scores.idxmax()
+        worst_col = mean_scores.idxmin()
             
-            best_score = mean_scores.max()
-            worst_score = mean_scores.min()
+        best_score = mean_scores.max()
+        worst_score = mean_scores.min()
             
-            # แสดงผลแบบ Metric เพื่อให้เห็นชัดเจน
-            col1, col2 = st.columns(2)
-            col1.metric("จุดแข็งที่สุด (คะแนนสูงสุด)", f"{best_score:.2f} / 5.00", best_col)
-            col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
+        # แสดงผลแบบ Metric เพื่อให้เห็นชัดเจน
+        col1, col2 = st.columns(2)
+        col1.metric("จุดแข็งที่สุด (คะแนนสูงสุด)", f"{best_score:.2f} / 5.00", best_col)
+        col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
             
-            # ใส่คำอธิบายเพิ่มเติมเล็กน้อย
-            st.caption(f"📈 จุดแข็ง: {best_col}")
-            st.caption(f"📉 ควรพัฒนา: {worst_col}")
+        # ใส่คำอธิบายเพิ่มเติมเล็กน้อย
+        st.caption(f"📈 จุดแข็ง: {best_col}")
+        st.caption(f"📉 ควรพัฒนา: {worst_col}")
             
-            st.divider()
+        st.divider()
 
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาด: {e}")
