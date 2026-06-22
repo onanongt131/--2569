@@ -249,4 +249,3 @@ else:
         col1.metric("จุดแข็งที่สุด (คะแนนสูงสุด)", f"{best_score:.2f} / 5.00", best_col)
         col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
             
-        st.divider()
