@@ -49,8 +49,17 @@ if not st.session_state.password_correct:
 else:
     try:
         df, _ = load_data()
+        
+        # --- นำมาวางตรงนี้ครับ ---
+        if st.button("🔄 อัพเดตข้อมูลล่าสุด"):
+            st.cache_data.clear() # ล้าง Cache ข้อมูลเก่า
+            st.rerun()           # โหลดหน้าใหม่
+        # ------------------------
+
         user_info = st.session_state.user_info
         access_list = str(user_info['WardAccess'])
+        
+        # ต่อด้วยโค้ดกรองข้อมูลและการทำงานส่วนอื่นๆ ของคุณ...
 
         # 1. การกรองข้อมูลและกำหนดตัวเลือกหน่วยงาน
         if access_list == "ALL":
