@@ -128,6 +128,17 @@ else:
         col2.metric("เป้าหมายรวม", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ (รวม)", f"{total_percent:.1f}%")
 
+        # เพิ่มความสูงกราฟให้ดูสบายตาขึ้น
+        chart1 = alt.Chart(ward_counts).mark_bar().encode(
+            x='หน่วยงาน', 
+            y='Percent', 
+            color='หน่วยงาน',
+            tooltip=['หน่วยงาน', 'Count', 'Target', 'Percent']
+        ).properties(height=400) # ปรับความสูงกราฟ
+        st.altair_chart(chart1, use_container_width=True)
+        
+        st.divider() # เพิ่มเส้นแบ่งให้ดูสะอาดตา
+
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
         
         # 1. กราฟแท่งคะแนนเฉลี่ยรายข้อ (ยังคงเดิม)
@@ -172,6 +183,18 @@ else:
         level_counts = df_display['Level'].value_counts().reset_index()
         level_counts.columns = ['ระดับความพึงพอใจ', 'จำนวน (คน)']
         st.table(level_counts)
+
+        # เพิ่มความสูงกราฟให้ดูสบายตาขึ้น
+        chart1 = alt.Chart(ward_counts).mark_bar().encode(
+            x='หน่วยงาน', 
+            y='Percent', 
+            color='หน่วยงาน',
+            tooltip=['หน่วยงาน', 'Count', 'Target', 'Percent']
+        ).properties(height=400) # ปรับความสูงกราฟ
+        st.altair_chart(chart1, use_container_width=True)
+        
+        st.divider() # เพิ่มเส้นแบ่งให้ดูสะอาดตา
+        
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         st.dataframe(stats, use_container_width=True)
