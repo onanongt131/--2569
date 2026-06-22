@@ -11,11 +11,14 @@ st.markdown("""
     <style>
     .stApp { font-size: 28px !important; }
     h1, h2, h3 { color: #0068c9; }
-     /* ปรับขนาดตัวเลขหลัก (เช่น 454) ให้เล็กลงเล็กน้อย */
-[data-testid="stMetricValue"] { font-size: 30px !important; }
-
-/* ปรับขนาดตัวเปอร์เซ็นต์ (delta) ให้ใหญ่และเด่น */
-[data-testid="stMetricDelta"] { font-size: 40px !important; font-weight: bold; }
+    
+    /* ปรับขนาดตัวเลขหลัก (เช่น 454) ให้เล็กลง */
+    [data-testid="stMetricValue"] { font-size: 30px !important; }
+    
+    /* ปรับขนาดและเน้นตัวเลขเปอร์เซ็นต์ (delta) ให้ใหญ่และเด่น */
+    [data-testid="stMetricDelta"] { font-size: 40px !important; font-weight: bold; }
+    
+    .stTable { font-size: 24px !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -161,6 +164,7 @@ else:
                 value=f"{overall_avg:.2f} / 5.00"
             )
             
+            # นำเปอร์เซ็นต์ไปไว้ใน delta เพื่อใช้ขนาด font ที่เราตั้งค่าไว้ให้เด่น
             st.metric(
                 label="ระดับดีขึ้นไป", 
                 value=f"{count_good} / {total_people} คน", 
