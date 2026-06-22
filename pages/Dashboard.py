@@ -23,10 +23,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 3. ตามด้วยฟังก์ชันโหลดข้อมูลและส่วนอื่นๆ ของคุณ...
-@st.cache_data(ttl=60)
-def load_data():
-    # ...
+# 3. ตามด้วยฟังก์ชันโหลดข้อมูลและส่วนอื่นๆ ของคุณ..
 
 @st.cache_data(ttl=60)
 def load_data():
