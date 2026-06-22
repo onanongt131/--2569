@@ -3,10 +3,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-# --- เพิ่มบรรทัดนี้เพื่อขยายหน้าจอให้กว้างที่สุด ---
 st.set_page_config(layout="wide") 
-
-# ... โค้ดส่วนที่เหลือของคุณตามเดิม
 
 @st.cache_data(ttl=60)
 def load_data():
@@ -15,7 +12,7 @@ def load_data():
     perms_df = pd.read_csv("permissions.csv", encoding='utf-8-sig')
     return df, perms_df
 
-# ตารางเป้าหมาย (นำมาวางไว้ตรงนี้เพื่อให้เรียกใช้ได้ทุกจุด)
+# ตารางเป้าหมาย
 target_map = {
     "กุมารเวชกรรม 1": 10, "กุมารเวชกรรม 2": 10, "งานเวชศาสตร์ใต้น้ำ": 5, "งานไตเทียม HD/CAPD": 10,
     "น้อมเกล้า 2": 10, "น้อมเกล้า 3": 10, "น้อมเกล้า 4": 10, "นรีเวชกรรม": 10,
@@ -54,19 +51,13 @@ if not st.session_state.password_correct:
 else:
     try:
         df, _ = load_data()
-        
-        # --- นำมาวางตรงนี้ครับ ---
         if st.button("🔄 อัพเดตข้อมูลล่าสุด"):
-            st.cache_data.clear() # ล้าง Cache ข้อมูลเก่า
-            st.rerun()           # โหลดหน้าใหม่
-        # ------------------------
+            st.cache_data.clear()
+            st.rerun()
 
         user_info = st.session_state.user_info
         access_list = str(user_info['WardAccess'])
         
-        # ต่อด้วยโค้ดกรองข้อมูลและการทำงานส่วนอื่นๆ ของคุณ...
-
-        # 1. การกรองข้อมูลและกำหนดตัวเลือกหน่วยงาน
         if access_list == "ALL":
             df_filtered = df
             all_wards = ["ภาพรวมทั้งหมด"] + sorted(df['หน่วยงาน'].unique().tolist())
@@ -76,13 +67,12 @@ else:
             df_filtered = df[df['หน่วยงาน'].isin(allowed_wards)]
             all_wards = ["กลุ่มงานทั้งหมด"] + sorted(allowed_wards)
 
-        # 2. เลือกหน่วยงาน
         if 'selected_ward' not in st.session_state or st.session_state.selected_ward not in all_wards:
             st.session_state.selected_ward = all_wards[0]
 
         selected_ward = st.selectbox("เลือกดูข้อมูล:", all_wards, key='selected_ward')
         
-        # 3. เตรียมข้อมูลและเป้าหมาย
+        # เตรียมข้อมูล
         if selected_ward == "ภาพรวมทั้งหมด":
             df_display = df_filtered
             display_target = 780
@@ -93,33 +83,24 @@ else:
             df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
             display_target = target_map.get(selected_ward, 10)
 
-        # 4. ส่วนแสดงผล
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
+        # --- ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน ---
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-        
-        # 1. คำนวณร้อยละรายหน่วยงาน
         ward_counts = df_display['หน่วยงาน'].value_counts().reset_index()
         ward_counts.columns = ['หน่วยงาน', 'Count']
-        
-        # นำเป้าหมายมาใส่ในตารางเพื่อคำนวณร้อยละ
-        ward_counts['Target'] = ward_counts['หน่วยงาน'].map(target_map).fillna(10) # 10 คือค่า Default ถ้าไม่มีใน map
+        ward_counts['Target'] = ward_counts['หน่วยงาน'].map(target_map).fillna(10)
         ward_counts['Percent'] = (ward_counts['Count'] / ward_counts['Target'] * 100).round(1)
         
-        # 2. แสดงกราฟ (ใช้ Percent แทน Count)
         chart1 = alt.Chart(ward_counts).mark_bar().encode(
-            x='หน่วยงาน', 
-            y='Percent', 
-            color='หน่วยงาน',
+            x='หน่วยงาน', y='Percent', color='หน่วยงาน',
             tooltip=['หน่วยงาน', 'Count', 'Target', 'Percent']
-        )
+        ).properties(height=400)
         st.altair_chart(chart1, use_container_width=True)
-            
-        # 3. แสดงตารางสรุปเปอร์เซ็นต์รายหน่วยงาน
+        
         with st.expander("ดูรายละเอียดร้อยละรายหน่วยงาน"):
             st.dataframe(ward_counts[['หน่วยงาน', 'Count', 'Target', 'Percent']], use_container_width=True)
 
-        # 4. Metric รวมด้านล่างเหมือนเดิม
         total_count = int(df_display.shape[0])
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
@@ -127,33 +108,19 @@ else:
         col1.metric("จำนวนรวม", f"{total_count} คน")
         col2.metric("เป้าหมายรวม", f"{display_target} คน")
         col3.metric("ร้อยละความสำเร็จ (รวม)", f"{total_percent:.1f}%")
-
-        # เพิ่มความสูงกราฟให้ดูสบายตาขึ้น
-        chart1 = alt.Chart(ward_counts).mark_bar().encode(
-            x='หน่วยงาน', 
-            y='Percent', 
-            color='หน่วยงาน',
-            tooltip=['หน่วยงาน', 'Count', 'Target', 'Percent']
-        ).properties(height=400) # ปรับความสูงกราฟ
-        st.altair_chart(chart1, use_container_width=True)
         
-        st.divider() # เพิ่มเส้นแบ่งให้ดูสะอาดตา
+        st.divider() 
 
+        # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
-        
-        # 1. กราฟแท่งคะแนนเฉลี่ยรายข้อ (ยังคงเดิม)
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
         chart2 = alt.Chart(avg_data).mark_bar().encode(
-            x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), 
-            y='หัวข้อ'
-        )
+            x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), y='หัวข้อ'
+        ).properties(height=500)
         st.altair_chart(chart2, use_container_width=True)
 
-        # 2. คำนวณคะแนนเฉลี่ยรวม 20 ข้อ (ของแต่ละแถว/ผู้ประเมินแต่ละคน)
         df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
-        
-        # 3. จัดกลุ่มระดับความพึงพอใจ
         def classify_score(s):
             if s >= 4.21: return "ดีมาก"
             elif s >= 3.41: return "ดี"
@@ -162,39 +129,20 @@ else:
             else: return "ควรปรับปรุง"
 
         df_display['Level'] = df_display['Mean_Score'].apply(classify_score)
-        
-        # 4. คำนวณสรุปผล
         overall_avg = df_display['Mean_Score'].mean()
-        
-        # นับจำนวนคนที่ได้ระดับ "ดีขึ้นไป" (ดีมาก + ดี)
-        good_levels = ["ดีมาก", "ดี"]
-        count_good = df_display[df_display['Level'].isin(good_levels)].shape[0]
-        total_people = df_display.shape[0]
-        percent_good = (count_good / total_people * 100) if total_people > 0 else 0
+        count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
+        percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
 
-        # 5. แสดงผลสรุป
         col_a, col_b = st.columns(2)
         col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{overall_avg:.2f} / 5.00")
         col_b.metric("ร้อยละระดับดีขึ้นไป", f"{percent_good:.1f}%")
 
-        # เพิ่มตารางสรุปสถิติด้านล่าง
-        st.write("---")
         st.write("**สถิติระดับความพึงพอใจ:**")
-        level_counts = df_display['Level'].value_counts().reset_index()
-        level_counts.columns = ['ระดับความพึงพอใจ', 'จำนวน (คน)']
-        st.table(level_counts)
+        st.table(df_display['Level'].value_counts().reset_index())
+        
+        st.divider()
 
-        # เพิ่มความสูงกราฟให้ดูสบายตาขึ้น
-        chart1 = alt.Chart(ward_counts).mark_bar().encode(
-            x='หน่วยงาน', 
-            y='Percent', 
-            color='หน่วยงาน',
-            tooltip=['หน่วยงาน', 'Count', 'Target', 'Percent']
-        ).properties(height=400) # ปรับความสูงกราฟ
-        st.altair_chart(chart1, use_container_width=True)
-        
-        st.divider() # เพิ่มเส้นแบ่งให้ดูสะอาดตา
-        
+        # --- ส่วนที่ 3: สถิติละเอียด ---
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         st.dataframe(stats, use_container_width=True)
