@@ -111,17 +111,19 @@ else:
         ward_counts.columns = ['หน่วยงาน', 'Count']
         ward_counts['Target'] = ward_counts['หน่วยงาน'].map(target_map).fillna(10)
         
-        # 1. คำนวณร้อยละจริงไว้ก่อน (เผื่อเกิน 100%)
+        # 1. คำนวณร้อยละจริง และสร้างคอลัมน์สี
         ward_counts['Percent_Actual'] = (ward_counts['Count'] / ward_counts['Target'] * 100)
-        
-        # 2. สร้างคอลัมน์ Percent สำหรับแสดงกราฟ (จำกัดไม่เกิน 100)
         ward_counts['Percent_Plot'] = ward_counts['Percent_Actual'].clip(upper=100)
         
-        # สร้างกราฟโดยใช้ Percent_Plot
+        # กำหนดเงื่อนไขสี: ถ้าเกินหรือเท่ากับ 100 ให้เป็นสีเขียว ถ้าไม่ถึงให้เป็นสีส้ม
+        ward_counts['Color_Status'] = ward_counts['Percent_Actual'].apply(lambda x: 'ถึงเป้าหมาย (>=100%)' if x >= 100 else 'ไม่ถึงเป้าหมาย (<100%)')
+        
+        # สร้างกราฟ
         chart1 = alt.Chart(ward_counts).mark_bar().encode(
             x='หน่วยงาน', 
             y=alt.Y('Percent_Plot', title='ร้อยละ (สูงสุด 100%)', scale=alt.Scale(domain=[0, 100])), 
-            color='หน่วยงาน',
+            # กำหนดสีตามเงื่อนไข Color_Status
+            color=alt.Color('Color_Status', scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], range=['#2ecc71', '#e67e22'])),
             tooltip=[
                 'หน่วยงาน', 
                 'Count', 
