@@ -184,10 +184,6 @@ else:
         st.subheader("ส่วนที่ 3: คะแนนเฉลี่ย (Mean) และ SD")
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         st.dataframe(stats, use_container_width=True)
-
-        if st.button("ออกจากระบบ"):
-            st.session_state.password_correct = False
-            st.rerun()
     
         # --- ส่วนที่ 4: สรุปจุดแข็งและจุดที่ควรปรับปรุง ---
         st.subheader("ส่วนที่ 4: วิเคราะห์จุดแข็งและจุดที่ต้องปรับปรุง")
@@ -208,6 +204,10 @@ else:
         col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
             
         st.divider()
+
+         if st.button("ออกจากระบบ"):
+            st.session_state.password_correct = False
+            st.rerun()
 
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาด: {e}")
