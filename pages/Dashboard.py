@@ -134,6 +134,16 @@ else:
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
         col_graph, col_summary = st.columns([0.7, 0.3])
 
+        with col_graph:
+            avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
+            avg_data.columns = ['หัวข้อ', 'Score']
+            chart2 = alt.Chart(avg_data).mark_bar().encode(
+                x=alt.X('Score', title='คะแนนเฉลี่ย (%)', scale=alt.Scale(domain=[0, 100])),
+                y=alt.Y('หัวข้อ', title=None, axis=alt.Axis(labelLimit=400, labelFontSize=14)),
+                color=alt.value('#2980b9') 
+            ).properties(height=500)
+            st.altair_chart(chart2, use_container_width=True)
+
         with col_summary:
             df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
             
