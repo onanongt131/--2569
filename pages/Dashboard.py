@@ -144,7 +144,7 @@ else:
             ).properties(height=500)
             st.altair_chart(chart2, use_container_width=True)
 
-        with col_summary:
+       with col_summary:
             df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
             def classify_score(s):
                 if s >= 4.21: return "ดีมาก"
@@ -159,12 +159,12 @@ else:
             count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
             percent_good = (count_good / total_people * 100) if total_people > 0 else 0
 
-           st.metric(
+            # แก้ไขการเยื้องให้ตรงกันที่นี่
+            st.metric(
                 label="คะแนนเฉลี่ยรวม", 
                 value=f"{overall_avg:.2f} / 5.00"
             )
             
-            # นำเปอร์เซ็นต์ไปไว้ใน delta เพื่อใช้ขนาด font ที่เราตั้งค่าไว้ให้เด่น
             st.metric(
                 label="ระดับดีขึ้นไป", 
                 value=f"{count_good} / {total_people} คน", 
@@ -175,7 +175,6 @@ else:
             level_counts = df_display['Level'].value_counts().sort_index().reset_index()
             level_counts.columns = ['Level', 'Count']
             st.table(level_counts[level_counts['Count'] > 0])
-        
         st.divider()
 
         # --- ส่วนที่ 3 & 4 ---
