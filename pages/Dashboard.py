@@ -168,7 +168,7 @@ else:
             ).properties(height=500) # ลดความสูงลงเล็กน้อยให้สมดุล
             st.altair_chart(chart2, use_container_width=True)
 
-        with col_summary:
+       with col_summary:
             # คำนวณคะแนนเฉลี่ยรายบุคคลเพื่อจัดระดับ
             df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
             
@@ -183,14 +183,21 @@ else:
             score_order = ["ดีมาก", "ดี", "ปานกลาง", "น้อย", "ควรปรับปรุง"]
             df_display['Level'] = pd.Categorical(df_display['Level'], categories=score_order, ordered=True)
             
-            # คำนวณตัวเลขสรุป
+            # --- ปรับการคำนวณสรุปผล ---
             overall_avg = df_display['Mean_Score'].mean()
-            count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
-            percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
+            total_people = df_display.shape[0] # จำนวนคนทั้งหมด
+            count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0] # คนที่ได้ระดับดี/ดีมาก
+            percent_good = (count_good / total_people * 100) if total_people > 0 else 0
 
             # แสดง Metric ในคอลัมน์ขวา
             st.metric("คะแนนเฉลี่ยรวม", f"{overall_avg:.2f} / 5.00")
-            st.metric("ร้อยละระดับดีขึ้นไป", f"{percent_good:.1f}%")
+            
+            # แสดง Metric ใหม่ที่รวมจำนวนคนและเปอร์เซ็นต์
+            st.metric(
+                label="ระดับดีขึ้นไป", 
+                value=f"{count_good} / {total_people} คน", 
+                delta=f"{percent_good:.1f}%"
+            )
 
             # แสดงตารางความพึงพอใจ (ซ่อนค่า 0)
             st.write("**สถิติระดับความพึงพอใจ:**")
