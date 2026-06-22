@@ -3,6 +3,11 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
+# --- เพิ่มบรรทัดนี้เพื่อขยายหน้าจอให้กว้างที่สุด ---
+st.set_page_config(layout="wide") 
+
+# ... โค้ดส่วนที่เหลือของคุณตามเดิม
+
 @st.cache_data(ttl=60)
 def load_data():
     sheet_url = "https://docs.google.com/spreadsheets/d/1U0bVw8G5jyMDwR6ohaqrU6k5KRwEhYIcCENMyoZoyyw/export?format=csv"
