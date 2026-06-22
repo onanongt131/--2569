@@ -150,10 +150,10 @@ else:
         
         st.divider()
         
-        # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
+       # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
 
-        # แบ่งพื้นที่เป็น 2 คอลัมน์: คอลัมน์ซ้าย (กราฟ 70%), คอลัมน์ขวา (สรุปผล 30%)
+        # แบ่งพื้นที่เป็น 2 คอลัมน์
         col_graph, col_summary = st.columns([0.7, 0.3])
 
         with col_graph:
@@ -165,10 +165,10 @@ else:
                 x=alt.X('Score', title='คะแนนเฉลี่ย (%)', scale=alt.Scale(domain=[0, 100])),
                 y=alt.Y('หัวข้อ', title=None, axis=alt.Axis(labelLimit=400, labelFontSize=14)),
                 color=alt.value('#2980b9') 
-            ).properties(height=500) # ลดความสูงลงเล็กน้อยให้สมดุล
+            ).properties(height=500)
             st.altair_chart(chart2, use_container_width=True)
 
-       with col_summary:
+        with col_summary:
             # คำนวณคะแนนเฉลี่ยรายบุคคลเพื่อจัดระดับ
             df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
             
@@ -183,21 +183,15 @@ else:
             score_order = ["ดีมาก", "ดี", "ปานกลาง", "น้อย", "ควรปรับปรุง"]
             df_display['Level'] = pd.Categorical(df_display['Level'], categories=score_order, ordered=True)
             
-            # --- ปรับการคำนวณสรุปผล ---
+            # คำนวณตัวเลขสรุป
             overall_avg = df_display['Mean_Score'].mean()
-            total_people = df_display.shape[0] # จำนวนคนทั้งหมด
-            count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0] # คนที่ได้ระดับดี/ดีมาก
+            total_people = df_display.shape[0] 
+            count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
             percent_good = (count_good / total_people * 100) if total_people > 0 else 0
 
             # แสดง Metric ในคอลัมน์ขวา
             st.metric("คะแนนเฉลี่ยรวม", f"{overall_avg:.2f} / 5.00")
-            
-            # แสดง Metric ใหม่ที่รวมจำนวนคนและเปอร์เซ็นต์
-            st.metric(
-                label="ระดับดีขึ้นไป", 
-                value=f"{count_good} / {total_people} คน", 
-                delta=f"{percent_good:.1f}%"
-            )
+            st.metric(label="ระดับดีขึ้นไป", value=f"{count_good} / {total_people} คน", delta=f"{percent_good:.1f}%")
 
             # แสดงตารางความพึงพอใจ (ซ่อนค่า 0)
             st.write("**สถิติระดับความพึงพอใจ:**")
@@ -225,16 +219,9 @@ else:
         best_score = mean_scores.max()
         worst_score = mean_scores.min()
             
-        # แสดงผลแบบ Metric เพื่อให้เห็นชัดเจน
+        # แสดงผลแบบ Metric
         col1, col2 = st.columns(2)
         col1.metric("จุดแข็งที่สุด (คะแนนสูงสุด)", f"{best_score:.2f} / 5.00", best_col)
         col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
             
         st.divider()
-
-        if st.button("ออกจากระบบ"):
-            st.session_state.password_correct = False
-            st.rerun()
-
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาด: {e}")
