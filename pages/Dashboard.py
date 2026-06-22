@@ -151,11 +151,21 @@ else:
         st.divider()
         # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
+        
+        # คำนวณคะแนนเฉลี่ย
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
         avg_data.columns = ['หัวข้อ', 'Score']
+        
+        # ปรับการแสดงผลกราฟ
         chart2 = alt.Chart(avg_data).mark_bar().encode(
-            x=alt.X('Score', scale=alt.Scale(domain=[0, 100])), y='หัวข้อ'
-        ).properties(height=500)
+            x=alt.X('Score', title='คะแนนเฉลี่ย (%)', scale=alt.Scale(domain=[0, 100])),
+            # ปรับให้หัวข้อ (แกน Y) มีพื้นที่มากขึ้น และจัดตำแหน่งให้เห็นชัด
+            y=alt.Y('หัวข้อ', title=None, axis=alt.Axis(labelLimit=400, labelFontSize=14)),
+            color=alt.value('#2980b9') # ใช้สีน้ำเงินให้เป็นโทนเดียวกับส่วนที่ 1
+        ).properties(
+            height=600,  # ปรับความสูงกราฟรวม (ถ้าต้องการให้สั้นลง ให้ลดค่านี้)
+            width=800    # ปรับความกว้างกราฟ
+        )
         st.altair_chart(chart2, use_container_width=True)
 
         df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
