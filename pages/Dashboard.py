@@ -10,7 +10,7 @@ st.set_page_config(layout="wide")
 st.markdown("""
     <style>
     /* ปรับขนาด Font ทั่วไป */
-    .stApp { font-size: 24px !important; }
+    .stApp { font-size: 30px !important; }
     
     /* ปรับขนาดหัวข้อ */
     h1, h2, h3 { color: #0068c9; }
