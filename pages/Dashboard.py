@@ -145,6 +145,7 @@ else:
             st.altair_chart(chart2, use_container_width=True)
 
         with col_summary:
+            # คำนวณคะแนนเฉลี่ยรายบุคคลเพื่อจัดระดับ
             df_display['Mean_Score'] = df_display[score_cols].mean(axis=1)
             
             def classify_score(s):
@@ -153,14 +154,15 @@ else:
                 elif s >= 2.61: return "ปานกลาง"
                 elif s >= 1.81: return "น้อย"
                 else: return "ควรปรับปรุง"
-                
-            df_display['Level'] = df_display['Mean_Score'].apply(classify_score)
-            
-            overall_avg = df_display['Mean_Score'].mean()
-            total_people = df_display.shape[0] 
-            count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
-            percent_good = (count_good / total_people * 100) if total_people > 0 else 0
 
+            df_display['Level'] = df_display['Mean_Score'].apply(classify_score)
+            score_order = ["ดีมาก", "ดี", "ปานกลาง", "น้อย", "ควรปรับปรุง"]
+            df_display['Level'] = pd.Categorical(df_display['Level'], categories=score_order, ordered=True)
+            
+            # คำนวณตัวเลขสรุป
+            overall_avg = df_display['Mean_Score'].mean()
+            count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
+            percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
             st.metric(
                 label="คะแนนเฉลี่ยรวม", 
                 value=f"{overall_avg:.2f} / 5.00"
