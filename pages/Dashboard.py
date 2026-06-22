@@ -10,16 +10,16 @@ st.set_page_config(layout="wide")
 st.markdown("""
     <style>
     /* ปรับขนาด Font ทั่วไป */
-    .stApp { font-size: 18px !important; }
+    .stApp { font-size: 22px !important; }
     
     /* ปรับขนาดหัวข้อ */
     h1, h2, h3 { color: #0068c9; }
     
     /* ปรับตัวเลขใน metric ให้เด่น */
-    [data-testid="stMetricValue"] { font-size: 32px !important; }
+    [data-testid="stMetricValue"] { font-size: 40px !important; }
     
     /* ปรับขนาดตัวอักษรในตาราง */
-    .stTable { font-size: 16px !important; }
+    .stTable { font-size: 20px !important; }
     </style>
     """, unsafe_allow_html=True)
 
