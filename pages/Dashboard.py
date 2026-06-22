@@ -163,10 +163,6 @@ else:
             overall_avg = df_display['Mean_Score'].mean()
             count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
             percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
-            st.metric(
-                label="คะแนนเฉลี่ยรวม", 
-                value=f"{overall_avg:.2f} / 5.00"
-            )
             
             st.metric(
                 label="ระดับดีขึ้นไป", 
