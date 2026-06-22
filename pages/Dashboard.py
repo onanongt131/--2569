@@ -123,7 +123,7 @@ else:
             x='หน่วยงาน', 
             y=alt.Y('Percent_Plot', title='ร้อยละ (สูงสุด 100%)', scale=alt.Scale(domain=[0, 100])), 
             # กำหนดสีตามเงื่อนไข Color_Status
-            color=alt.Color('Color_Status', scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], range=['#2980b9', '#c0392b'])),
+            color=alt.Color('', scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], range=['#2980b9', '#c0392b'])),
             tooltip=[
                 'หน่วยงาน', 
                 'Count', 
