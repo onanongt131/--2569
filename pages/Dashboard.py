@@ -176,17 +176,19 @@ else:
             elif s >= 1.81: return "น้อย"
             else: return "ควรปรับปรุง"
 
-        df_display['Level'] = df_display['Mean_Score'].apply(classify_score)
-        overall_avg = df_display['Mean_Score'].mean()
-        count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
-        percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
-
-        col_a, col_b = st.columns(2)
-        col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{overall_avg:.2f} / 5.00")
-        col_b.metric("ร้อยละระดับดีขึ้นไป", f"{percent_good:.1f}%")
-
+        # 1. นิยามลำดับที่ต้องการ
+        score_order = ["ดีมาก", "ดี", "ปานกลาง", "น้อย", "ควรปรับปรุง"]
+        
+        # 2. แปลงคอลัมน์ Level ให้เป็น Categorical ตามลำดับที่ตั้งไว้
+        df_display['Level'] = pd.Categorical(df_display['Level'], categories=score_order, ordered=True)
+        
+        # 3. สรุปผลและเรียงลำดับตาราง
+        level_counts = df_display['Level'].value_counts().sort_index().reset_index()
+        level_counts.columns = ['Level', 'Count']
+        
+        # 4. แสดงผล
         st.write("**สถิติระดับความพึงพอใจ:**")
-        st.table(df_display['Level'].value_counts().reset_index())
+        st.table(level_counts)
         
         st.divider()
 
