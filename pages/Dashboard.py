@@ -195,8 +195,6 @@ else:
         col_a.metric("คะแนนเฉลี่ยรวม (20 ข้อ)", f"{overall_avg:.2f} / 5.00")
         col_b.metric("ร้อยละระดับดีขึ้นไป", f"{percent_good:.1f}%")
 
-        # แสดงตารางความพึงพอใจที่เรียงลำดับแล้ว
-        st.write("**สถิติระดับความพึงพอใจ:**")
         # 3. สรุปผลและเรียงลำดับตาราง
         level_counts = df_display['Level'].value_counts().sort_index().reset_index()
         level_counts.columns = ['Level', 'Count']
