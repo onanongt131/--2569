@@ -3,7 +3,30 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
+# 1. ตั้งค่า Layout กว้าง
 st.set_page_config(layout="wide") 
+
+# 2. วางโค้ดปรับขนาด Font ตรงนี้ เพื่อให้มันมีผลกับทุกส่วนของ Dashboard
+st.markdown("""
+    <style>
+    /* ปรับขนาด Font ทั่วไป */
+    .stApp { font-size: 18px !important; }
+    
+    /* ปรับขนาดหัวข้อ */
+    h1, h2, h3 { color: #0068c9; }
+    
+    /* ปรับตัวเลขใน metric ให้เด่น */
+    [data-testid="stMetricValue"] { font-size: 32px !important; }
+    
+    /* ปรับขนาดตัวอักษรในตาราง */
+    .stTable { font-size: 16px !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 3. ตามด้วยฟังก์ชันโหลดข้อมูลและส่วนอื่นๆ ของคุณ...
+@st.cache_data(ttl=60)
+def load_data():
+    # ...
 
 @st.cache_data(ttl=60)
 def load_data():
