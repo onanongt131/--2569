@@ -11,8 +11,11 @@ st.markdown("""
     <style>
     .stApp { font-size: 28px !important; }
     h1, h2, h3 { color: #0068c9; }
-    [data-testid="stMetricValue"] { font-size: 40px !important; }
-    .stTable { font-size: 24px !important; }
+     /* ปรับขนาดตัวเลขหลัก (เช่น 454) ให้เล็กลงเล็กน้อย */
+[data-testid="stMetricValue"] { font-size: 30px !important; }
+
+/* ปรับขนาดตัวเปอร์เซ็นต์ (delta) ให้ใหญ่และเด่น */
+[data-testid="stMetricDelta"] { font-size: 40px !important; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -153,8 +156,16 @@ else:
             count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
             percent_good = (count_good / total_people * 100) if total_people > 0 else 0
 
-            st.metric("คะแนนเฉลี่ยรวม", f"{overall_avg:.2f} / 5.00")
-            st.metric(label="ระดับดีขึ้นไป", value=f"{count_good} / {total_people} คน", delta=f"{percent_good:.1f}%")
+           st.metric(
+                label="คะแนนเฉลี่ยรวม", 
+                value=f"{overall_avg:.2f} / 5.00"
+            )
+            
+            st.metric(
+                label="ระดับดีขึ้นไป", 
+                value=f"{count_good} / {total_people} คน", 
+                delta=f"{percent_good:.1f}%"
+            )
 
             st.write("**สถิติระดับความพึงพอใจ:**")
             level_counts = df_display['Level'].value_counts().sort_index().reset_index()
