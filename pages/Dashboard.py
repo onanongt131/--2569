@@ -205,7 +205,7 @@ else:
             
         st.divider()
 
-         if st.button("ออกจากระบบ"):
+        if st.button("ออกจากระบบ"):
             st.session_state.password_correct = False
             st.rerun()
 
