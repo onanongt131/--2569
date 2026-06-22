@@ -92,19 +92,36 @@ else:
         score_cols = df_display.select_dtypes(include=[np.number]).columns.drop('อายุผู้ประเมิน (ปี)', errors='ignore')
 
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-        if selected_ward in ["ภาพรวมทั้งหมด", "กลุ่มงานทั้งหมด"]:
-            counts = df_display['หน่วยงาน'].value_counts().reset_index()
-            counts.columns = ['หน่วยงาน', 'Count']
-            chart1 = alt.Chart(counts).mark_bar().encode(x='หน่วยงาน', y='Count', color='หน่วยงาน')
-            st.altair_chart(chart1, use_container_width=True)
+        
+        # 1. คำนวณร้อยละรายหน่วยงาน
+        ward_counts = df_display['หน่วยงาน'].value_counts().reset_index()
+        ward_counts.columns = ['หน่วยงาน', 'Count']
+        
+        # นำเป้าหมายมาใส่ในตารางเพื่อคำนวณร้อยละ
+        ward_counts['Target'] = ward_counts['หน่วยงาน'].map(target_map).fillna(10) # 10 คือค่า Default ถ้าไม่มีใน map
+        ward_counts['Percent'] = (ward_counts['Count'] / ward_counts['Target'] * 100).round(1)
+        
+        # 2. แสดงกราฟ (ใช้ Percent แทน Count)
+        chart1 = alt.Chart(ward_counts).mark_bar().encode(
+            x='หน่วยงาน', 
+            y='Percent', 
+            color='หน่วยงาน',
+            tooltip=['หน่วยงาน', 'Count', 'Target', 'Percent']
+        )
+        st.altair_chart(chart1, use_container_width=True)
             
+        # 3. แสดงตารางสรุปเปอร์เซ็นต์รายหน่วยงาน
+        with st.expander("ดูรายละเอียดร้อยละรายหน่วยงาน"):
+            st.dataframe(ward_counts[['หน่วยงาน', 'Count', 'Target', 'Percent']], use_container_width=True)
+
+        # 4. Metric รวมด้านล่างเหมือนเดิม
         total_count = int(df_display.shape[0])
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         
         col1, col2, col3 = st.columns(3)
         col1.metric("จำนวนรวม", f"{total_count} คน")
         col2.metric("เป้าหมายรวม", f"{display_target} คน")
-        col3.metric("ร้อยละความสำเร็จ", f"{total_percent:.1f}%")
+        col3.metric("ร้อยละความสำเร็จ (รวม)", f"{total_percent:.1f}%")
 
         st.subheader("ส่วนที่ 2: ผลการประเมินภาพรวม")
         avg_data = (df_display[score_cols].mean() / 5 * 100).reset_index()
