@@ -146,7 +146,7 @@ else:
             color=alt.Color('Color_Status', 
                             scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], 
                                             range=['#2980b9', '#c0392b']),
-                            legend=alt.Legend(orient='bottom', title=None)), # แก้ไขจุดที่ Error
+                            legend=alt.Legend(orient='top', title=None)), # แก้ไขจุดที่ Error
             tooltip=['หน่วยงาน', 'Count', 'Target', alt.Tooltip('Percent_Actual', title='ร้อยละจริง (%)', format='.1f')]
         ).properties(height=400)
         
