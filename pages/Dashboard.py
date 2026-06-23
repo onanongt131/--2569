@@ -117,11 +117,14 @@ else:
         ward_counts['Color_Status'] = ward_counts['Percent_Actual'].apply(lambda x: 'ถึงเป้าหมาย (>=100%)' if x >= 100 else 'ไม่ถึงเป้าหมาย (<100%)')
         
         chart1 = alt.Chart(ward_counts).mark_bar().encode(
-            x='หน่วยงาน', y=alt.Y('Percent_Plot', title='ร้อยละ (สูงสุด 100%)', scale=alt.Scale(domain=[0, 100])), 
-            color=alt.Color('Color_Status', scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], range=['#2980b9', '#c0392b'])),
+            x=alt.X('หน่วยงาน', axis=alt.Axis(labelAngle=-45)) # หมุนชื่อ 45 องศา
+            y=alt.Y('Percent_Plot', title='ร้อยละ (สูงสุด 100%)', scale=alt.Scale(domain=[0, 100])), 
+            color=alt.Color('Color_Status', 
+                            scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], 
+                                            range=['#2980b9', '#c0392b']),
+                            legend=alt.Legend(orient='bottom', title=None)
             tooltip=['หน่วยงาน', 'Count', 'Target', alt.Tooltip('Percent_Actual', title='ร้อยละจริง (%)', format='.1f')]
-        ).properties(height=400)
-        st.altair_chart(chart1, use_container_width=True)
+        ).properties(height=300)
         
         total_count = int(df_display.shape[0])
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
