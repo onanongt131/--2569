@@ -198,7 +198,7 @@ else:
             # 2. แสดงจำนวนคน และ % ตัวใหญ่
             st.write("ระดับดีขึ้นไป")
             st.markdown(f"""
-                <div style="font-size: 40px; font-weight: bold;">{count_good} / {df_display.shape[0]} <span style="font-size: 20px;">คน</span></div>
+                <div style="font-size: 30px; font-weight: bold;">{count_good} / {df_display.shape[0]} <span style="font-size: 20px;">คน</span></div>
                 <div style="font-size: 50px; font-weight: bold; color: #27ae60;">↑ {percent_good:.1f}%</div>
             """, unsafe_allow_html=True)
 
