@@ -9,33 +9,11 @@ st.set_page_config(layout="wide")
 # 2. ปรับขนาด Font
 st.markdown("""
     <style>
-    /* 1. ปรับ Metric Value (ตัวเลขหลัก เช่น 4.66) ให้ใหญ่ */
-    [data-testid="stMetricValue"] { 
-        font-size: 50px !important; 
-        font-weight: bold !important; 
-    }
+    /* ปรับแต่ง Label ให้ดูสะอาด */
+    [data-testid="stMetricLabel"] { font-size: 18px !important; color: #666 !important; }
     
-    /* 2. ปรับ Metric Delta (ตัวเลข % ด้านล่าง) ให้ใหญ่ขึ้นและเด่น */
-    [data-testid="stMetricDelta"] { 
-        font-size: 30px !important; 
-        font-weight: bold !important;
-    }
-
-    /* 3. ทำให้ Label ของ Metric (ตัวหนังสือด้านบน) เล็กและสีเทา */
-    [data-testid="stMetricLabel"] { 
-        font-size: 18px !important; 
-        color: #666 !important; 
-    }
-
-    /* 4. แยกสี: จุดแข็งเป็นเขียว, จุดที่ควรปรับปรุงเป็นแดง */
-    /* จุดแข็ง (อยู่ในคอลัมน์ที่ 1 ของส่วนที่ 4) */
-    div[data-testid="column"]:nth-of-type(1) [data-testid="stMetricDelta"] {
-        color: #27ae60 !important;
-    }
-    /* จุดที่ควรปรับปรุง (อยู่ในคอลัมน์ที่ 2 ของส่วนที่ 4) */
-    div[data-testid="column"]:nth-of-type(2) [data-testid="stMetricDelta"] {
-        color: #c0392b !important;
-    }
+    /* แก้ไขปัญหาการแสดงผลในมือถือ */
+    .st-emotion-cache-1r6slp0 { gap: 0.5rem; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -208,14 +186,21 @@ else:
             count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
             percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
             
-            # ตัวอย่างการปรับแก้ในส่วนที่ 2 หรือ 4 ที่คุณต้องการ
+            # --- ตัวอย่างการปรับในส่วนสรุปผล ---
+
+            # 1. แสดงคะแนนเฉลี่ย (4.67 / 5.00)
+            # ตัวเลขหลัก 4.67 ใหญ่, / 5.00 เล็ก
             st.write("คะแนนเฉลี่ยรวม")
-            st.metric(label="", value=f"{overall_avg:.2f} / 5.00")
+            st.markdown("""
+                <div style="font-size: 50px; font-weight: bold;">4.67 <span style="font-size: 25px; color: #666;">/ 5.00</span></div>
+            """, unsafe_allow_html=True)
             
+            # 2. แสดงจำนวนคน และ % ตัวใหญ่
             st.write("ระดับดีขึ้นไป")
-            # ใช้ markdown แทรก HTML เพื่อกำหนดขนาด font ให้ "คน" เล็กกว่าตัวเลข
-            st.markdown(f"### {count_good} / {df_display.shape[0]} <small>คน</small>", unsafe_allow_html=True)
-            st.markdown(f"**<span style='color:green; font-size:30px;'>↑ {percent_good:.1f}%</span>**", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div style="font-size: 40px; font-weight: bold;">{count_good} / {df_display.shape[0]} <span style="font-size: 20px;">คน</span></div>
+                <div style="font-size: 50px; font-weight: bold; color: #27ae60;">↑ {percent_good:.1f}%</div>
+            """, unsafe_allow_html=True)
 
             st.write("**สถิติระดับความพึงพอใจ:**")
             level_counts = df_display['Level'].value_counts().sort_index().reset_index()
