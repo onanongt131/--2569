@@ -49,22 +49,22 @@ Wound care	6
 Echo	6
 OPD จิตเวช	10
 เคมีบำบัด	7
-OPD นรีเวช	10
-OPD ศัลยกรรม	10
-OPD กระดูก	10
-OPD อายุรกรรม	10
-OPD เบาหวาน	10
+OPD นรีเวช	20
+OPD ศัลยกรรม	20
+OPD กระดูก	20
+OPD อายุรกรรม	20
+OPD เบาหวาน	20
 OPD งานเอดส์	10
 OPDให้คำปรึกษา	10
 OPD วัณโรค	10
 OPD กุมารเวช	10
 OPDAdmit+refer	10
 OPD WCC	10
-OPD ENT	10
-OPD ตา	10
+OPD ENT	20
+OPD ตา	20
 OPD Admit	10
 OPD จุดคัดกรอง	10
-OPD วชิระคลินิก	10
+OPD วชิระคลินิก	20
 OPD ARI	10
 OPD ทำแผล	10
 OPD ฉีดยา	10
