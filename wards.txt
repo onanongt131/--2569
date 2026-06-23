@@ -35,7 +35,6 @@ ER/ศูนย์ refer
 ICCU
 MICU
 NICU
-OPD
 ศูนย์ ODS&MIS
 ห้องผ่าตัด
 PICU
