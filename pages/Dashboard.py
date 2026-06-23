@@ -141,7 +141,7 @@ else:
         ward_counts['Color_Status'] = ward_counts['Percent_Actual'].apply(lambda x: 'ถึงเป้าหมาย (>=100%)' if x >= 100 else 'ไม่ถึงเป้าหมาย (<100%)')
         
         chart1 = alt.Chart(ward_counts).mark_bar().encode(
-            x=alt.X('หน่วยงาน', axis=alt.Axis(labelAngle=-45)), 
+            x=alt.X('หน่วยงาน', axis=alt.Axis(labelAngle=-90)), 
             y=alt.Y('Percent_Plot', title='ร้อยละ (สูงสุด 100%)', scale=alt.Scale(domain=[0, 100])), 
             color=alt.Color('Color_Status', 
                             scale=alt.Scale(domain=['ถึงเป้าหมาย (>=100%)', 'ไม่ถึงเป้าหมาย (<100%)'], 
