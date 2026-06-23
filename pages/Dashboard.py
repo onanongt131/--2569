@@ -109,9 +109,16 @@ else:
 
         # --- ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน ---
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
-        ward_counts = df_display['หน่วยงาน'].value_counts().reset_index()
+       # ใช้หน่วยงาน_กลุ่ม ในการทำกราฟ
+        ward_counts = df_display['หน่วยงาน_กลุ่ม'].value_counts().reset_index()
         ward_counts.columns = ['หน่วยงาน', 'Count']
-        ward_counts['Target'] = ward_counts['หน่วยงาน'].map(target_map).fillna(10)
+        
+        # ปรับ Target ให้สอดคล้องกับการรวมกลุ่ม
+        # ถ้าชื่อเป็น "OPD (รวม)" จะต้องใช้ผลรวมของ target ของ OPD ย่อยๆ ทั้งหมด
+        # หรือถ้าไม่อยากคำนวณใหม่ ให้ตั้ง Target คงที่สำหรับกลุ่มนี้
+        ward_counts['Target'] = 100 # ตัวอย่าง: กำหนดเป้าหมายรวมของกลุ่ม OPD ใหม่
+        
+        # จากนั้นใช้ ward_counts นี้ไปสร้าง chart1 ตามปกติครับ
         ward_counts['Percent_Actual'] = (ward_counts['Count'] / ward_counts['Target'] * 100)
         ward_counts['Percent_Plot'] = ward_counts['Percent_Actual'].clip(upper=100)
         ward_counts['Color_Status'] = ward_counts['Percent_Actual'].apply(lambda x: 'ถึงเป้าหมาย (>=100%)' if x >= 100 else 'ไม่ถึงเป้าหมาย (<100%)')
