@@ -90,15 +90,28 @@ else:
         selected_ward = st.selectbox("เลือกดูข้อมูล:", all_wards, key='selected_ward')
         
         # เตรียมข้อมูลและดัก Error
+        # เตรียมข้อมูลและดัก Error
         df_display = pd.DataFrame()
+        
+        # --- ปรับ logic การสร้าง df_display และคอลัมน์ 'หน่วยงาน_กลุ่ม' ---
         if selected_ward == "ภาพรวมทั้งหมด":
-            df_display = df_filtered
+            df_display = df_filtered.copy()
+            # ยุบ OPD รวมกัน (ยกเว้น จิตเวช)
+            df_display['หน่วยงาน_กลุ่ม'] = df_display['หน่วยงาน'].apply(
+                lambda x: "OPD (รวม)" if (x.startswith("OPD") and x != "OPD จิตเวช") else x
+            )
             display_target = 780
+            
         elif selected_ward == "กลุ่มงานทั้งหมด":
-            df_display = df_filtered
+            df_display = df_filtered.copy()
+            # ไม่ต้องยุบชื่อ แยกแสดงปกติ
+            df_display['หน่วยงาน_กลุ่ม'] = df_display['หน่วยงาน']
             display_target = sum([target_map.get(w, 10) for w in allowed_wards])
+            
         else:
-            df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward]
+            df_display = df_filtered[df_filtered['หน่วยงาน'] == selected_ward].copy()
+            # กรณีเลือกหน่วยงานเดียว ก็ให้ค่าเป็นชื่อหน่วยงานนั้นๆ
+            df_display['หน่วยงาน_กลุ่ม'] = df_display['หน่วยงาน']
             display_target = target_map.get(selected_ward, 10)
 
         if df_display.empty:
@@ -110,13 +123,17 @@ else:
         # --- ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน ---
         st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
        # ใช้หน่วยงาน_กลุ่ม ในการทำกราฟ
+       # --- ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน ---
+        st.subheader("ส่วนที่ 1: ร้อยละจำนวนผู้ประเมิน")
+        
+        # เปลี่ยนมาใช้ 'หน่วยงาน_กลุ่ม'
         ward_counts = df_display['หน่วยงาน_กลุ่ม'].value_counts().reset_index()
         ward_counts.columns = ['หน่วยงาน', 'Count']
         
-        # ปรับ Target ให้สอดคล้องกับการรวมกลุ่ม
-        # ถ้าชื่อเป็น "OPD (รวม)" จะต้องใช้ผลรวมของ target ของ OPD ย่อยๆ ทั้งหมด
-        # หรือถ้าไม่อยากคำนวณใหม่ ให้ตั้ง Target คงที่สำหรับกลุ่มนี้
-        ward_counts['Target'] = 100 # ตัวอย่าง: กำหนดเป้าหมายรวมของกลุ่ม OPD ใหม่
+        # ตรวจสอบการ Mapping Target
+        # ถ้าเป็น 'OPD (รวม)' ให้ใช้ Target ผลรวมของกลุ่ม OPD ทั้งหมด (เช่น 250 หรือตามที่คุณกำหนด)
+        # หรือถ้าต้องการให้กราฟแสดงผลได้ ให้ map target_map ตามชื่อกลุ่ม
+        ward_counts['Target'] = ward_counts['หน่วยงาน'].map(target_map).fillna(10)
         
         # จากนั้นใช้ ward_counts นี้ไปสร้าง chart1 ตามปกติครับ
         ward_counts['Percent_Actual'] = (ward_counts['Count'] / ward_counts['Target'] * 100)
