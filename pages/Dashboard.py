@@ -16,9 +16,9 @@ st.markdown("""
     [data-testid="stMetricValue"] { font-size: 30px !important; }
     
     /* ปรับขนาดและเน้นตัวเลขเปอร์เซ็นต์ (delta) ให้ใหญ่และเด่น */
-    [data-testid="stMetricDelta"] { font-size: 40px !important; font-weight: bold; }
+    [data-testid="stMetricDelta"] { font-size: 30px !important; font-weight: bold; }
     
-    .stTable { font-size: 24px !important; }
+    .stTable { font-size: 30px !important; }
     </style>
     """, unsafe_allow_html=True)
 
