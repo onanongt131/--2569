@@ -126,6 +126,8 @@ else:
             tooltip=['หน่วยงาน', 'Count', 'Target', alt.Tooltip('Percent_Actual', title='ร้อยละจริง (%)', format='.1f')]
         ).properties(height=300)
         
+        st.altair_chart(chart1, use_container_width=True)
+        
         total_count = int(df_display.shape[0])
         total_percent = (total_count / display_target * 100) if display_target > 0 else 0
         col1, col2, col3 = st.columns(3)
