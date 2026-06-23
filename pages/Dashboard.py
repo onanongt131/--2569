@@ -9,16 +9,27 @@ st.set_page_config(layout="wide")
 # 2. ปรับขนาด Font
 st.markdown("""
     <style>
-    .stApp { font-size: 28px !important; }
-    h1, h2, h3 { color: #0068c9; }
+    /* ปรับตัวเลขหลัก (เช่น 4.57) ให้ใหญ่และหนา */
+    [data-testid="stMetricValue"] { 
+        font-size: 50px !important; 
+        font-weight: bold !important;
+    }
     
-    /* ปรับขนาดตัวเลขหลัก (เช่น 454) ให้เล็กลง */
-    [data-testid="stMetricValue"] { font-size: 30px !important; }
+    /* ปรับตัวหนังสือด้านล่าง (จุดอ่อน/จุดแข็ง) ให้เล็กลงและเป็นสีเขียว/แดง */
+    [data-testid="stMetricDelta"] { 
+        font-size: 20px !important; 
+        font-weight: normal !important;
+    }
     
-    /* ปรับขนาดและเน้นตัวเลขเปอร์เซ็นต์ (delta) ให้ใหญ่และเด่น */
-    [data-testid="stMetricDelta"] { font-size: 30px !important; font-weight: bold; }
+    /* แยกสีสำหรับจุดแข็งและจุดอ่อน */
+    /* จุดแข็ง (ปกติเป็นสีเขียวอยู่แล้ว) */
+    .st-emotion-cache-1x4v88n { color: #27ae60 !important; } 
     
-    .stTable { font-size: 30px !important; }
+    /* จุดอ่อน: ปรับสีเป็นสีแดง */
+    /* เนื่องจาก Streamlit ใช้ class เดียวกัน เราจะเจาะจงที่ตัว delta ของคอลัมน์ที่ 2 */
+    div[data-testid="column"]:nth-of-type(2) [data-testid="stMetricDelta"] {
+        color: #c0392b !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
