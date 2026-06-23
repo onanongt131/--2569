@@ -9,24 +9,30 @@ st.set_page_config(layout="wide")
 # 2. ปรับขนาด Font
 st.markdown("""
     <style>
-    /* ปรับตัวเลขหลัก (เช่น 4.57) ให้ใหญ่และหนา */
+    /* 1. ปรับ Metric Value (ตัวเลขหลัก เช่น 4.66) ให้ใหญ่ */
     [data-testid="stMetricValue"] { 
         font-size: 50px !important; 
+        font-weight: bold !important; 
+    }
+    
+    /* 2. ปรับ Metric Delta (ตัวเลข % ด้านล่าง) ให้ใหญ่ขึ้นและเด่น */
+    [data-testid="stMetricDelta"] { 
+        font-size: 30px !important; 
         font-weight: bold !important;
     }
-    
-    /* ปรับตัวหนังสือด้านล่าง (จุดอ่อน/จุดแข็ง) ให้เล็กลงและเป็นสีเขียว/แดง */
-    [data-testid="stMetricDelta"] { 
-        font-size: 20px !important; 
-        font-weight: normal !important;
+
+    /* 3. ทำให้ Label ของ Metric (ตัวหนังสือด้านบน) เล็กและสีเทา */
+    [data-testid="stMetricLabel"] { 
+        font-size: 18px !important; 
+        color: #666 !important; 
     }
-    
-    /* แยกสีสำหรับจุดแข็งและจุดอ่อน */
-    /* จุดแข็ง (ปกติเป็นสีเขียวอยู่แล้ว) */
-    .st-emotion-cache-1x4v88n { color: #27ae60 !important; } 
-    
-    /* จุดอ่อน: ปรับสีเป็นสีแดง */
-    /* เนื่องจาก Streamlit ใช้ class เดียวกัน เราจะเจาะจงที่ตัว delta ของคอลัมน์ที่ 2 */
+
+    /* 4. แยกสี: จุดแข็งเป็นเขียว, จุดที่ควรปรับปรุงเป็นแดง */
+    /* จุดแข็ง (อยู่ในคอลัมน์ที่ 1 ของส่วนที่ 4) */
+    div[data-testid="column"]:nth-of-type(1) [data-testid="stMetricDelta"] {
+        color: #27ae60 !important;
+    }
+    /* จุดที่ควรปรับปรุง (อยู่ในคอลัมน์ที่ 2 ของส่วนที่ 4) */
     div[data-testid="column"]:nth-of-type(2) [data-testid="stMetricDelta"] {
         color: #c0392b !important;
     }
@@ -169,7 +175,6 @@ else:
         st.divider()
         
         # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
-        # --- ส่วนที่ 2: สรุปผลการประเมินภาพรวม ---
         st.subheader("ส่วนที่ 2: สรุปผลการประเมินภาพรวม")
         col_graph, col_summary = st.columns([0.7, 0.3])
 
@@ -203,16 +208,14 @@ else:
             count_good = df_display[df_display['Level'].isin(["ดีมาก", "ดี"])].shape[0]
             percent_good = (count_good / df_display.shape[0] * 100) if df_display.shape[0] > 0 else 0
             
-            st.metric(
-                label="คะแนนเฉลี่ยรวม", 
-                value=f"{overall_avg:.2f} / 5.00"
-            )
+            # ตัวอย่างการปรับแก้ในส่วนที่ 2 หรือ 4 ที่คุณต้องการ
+            st.write("คะแนนเฉลี่ยรวม")
+            st.metric(label="", value=f"{overall_avg:.2f} / 5.00")
             
-            st.metric(
-                label="ระดับดีขึ้นไป", 
-                value=f"{count_good} / {df_display.shape[0]} คน", 
-                delta=f"{percent_good:.1f}%"
-            )
+            st.write("ระดับดีขึ้นไป")
+            # ใช้ markdown แทรก HTML เพื่อกำหนดขนาด font ให้ "คน" เล็กกว่าตัวเลข
+            st.markdown(f"### {count_good} / {df_display.shape[0]} <small>คน</small>", unsafe_allow_html=True)
+            st.markdown(f"**<span style='color:green; font-size:30px;'>↑ {percent_good:.1f}%</span>**", unsafe_allow_html=True)
 
             st.write("**สถิติระดับความพึงพอใจ:**")
             level_counts = df_display['Level'].value_counts().sort_index().reset_index()
