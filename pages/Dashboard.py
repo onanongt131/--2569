@@ -148,7 +148,7 @@ else:
                                             range=['#2980b9', '#c0392b']),
                             legend=alt.Legend(orient='bottom', title=None)), # แก้ไขจุดที่ Error
             tooltip=['หน่วยงาน', 'Count', 'Target', alt.Tooltip('Percent_Actual', title='ร้อยละจริง (%)', format='.1f')]
-        ).properties(height=300)
+        ).properties(height=400)
         
         st.altair_chart(chart1, use_container_width=True)
         
