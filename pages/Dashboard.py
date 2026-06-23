@@ -214,13 +214,33 @@ else:
         stats = df_display[score_cols].agg(['mean', 'std']).round(2).T
         st.dataframe(stats, use_container_width=True)
     
+        # --- ส่วนที่ 4: วิเคราะห์จุดแข็งและจุดที่ต้องปรับปรุง ---
         st.subheader("ส่วนที่ 4: วิเคราะห์จุดแข็งและจุดที่ต้องปรับปรุง")
+        
+        # คำนวณค่า
         mean_scores = df_display[score_cols].mean()
         best_col, worst_col = mean_scores.idxmax(), mean_scores.idxmin()
         best_score, worst_score = mean_scores.max(), mean_scores.min()
+        
         col1, col2 = st.columns(2)
-        col1.metric("จุดแข็งที่สุด (คะแนนสูงสุด)", f"{best_score:.2f} / 5.00", best_col)
-        col2.metric("จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", f"{worst_score:.2f} / 5.00", worst_col)
+        
+        # ฟังก์ชันช่วยสร้าง HTML สำหรับแสดงผลตามต้องการ
+        def display_custom_metric(col, title, score, label, color):
+            col.write(title)
+            col.markdown(f"""
+                <div style="font-size: 45px; font-weight: bold; color: {color};">
+                    {score:.2f} <span style="font-size: 25px; color: #333;">/ 5.00</span>
+                </div>
+                <div style="font-size: 16px; color: {color}; font-weight: bold; margin-top: 5px;">
+                    {label}
+                </div>
+            """, unsafe_allow_html=True)
+        
+        # แสดงจุดแข็ง (สีเขียว)
+        display_custom_metric(col1, "จุดแข็งที่สุด (คะแนนสูงสุด)", best_score, best_col, "#27ae60")
+        
+        # แสดงจุดที่ควรปรับปรุง (สีแดง)
+        display_custom_metric(col2, "จุดที่ควรปรับปรุง (คะแนนต่ำสุด)", worst_score, worst_col, "#c0392b")
         
         if st.button("ออกจากระบบ"):
             st.session_state.password_correct = False
